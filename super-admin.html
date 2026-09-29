@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>PlayTourn — Super Admin</title>
+<meta name="theme-color" content="#0b0d10">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Super Admin">
+<meta property="og:description" content="Football league software for Kenyan leagues.">
+<meta property="og:image" content="og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: #0A0F1C;
+  --surface: #121A2B;
+  --surface-raised: #1B2540;
+  --surface-hover: #212C48;
+  --border: #232D45;
+  --border-soft: #1A2338;
+  --text: #F5F7FA;
+  --text-muted: #8B93A8;
+  --text-faint: #545F7D;
+  --amber: #F2A93B;
+  --amber-dim: #7A5A22;
+  --green: #2FD675;
+  --green-dim: #123322;
+  --red-card: #EB5757;
+  --red-dim: #3A1B1E;
+  --violet: #B18CF2;
+  --violet-dim: #322259;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --shadow: 0 8px 24px rgba(0,0,0,0.35);
+  --font-display: 'Oswald', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{ background: var(--bg); color: var(--text); font-family: var(--font-body); min-height:100vh; -webkit-font-smoothing: antialiased; }
+::selection{ background: var(--violet); color: #1A1200; }
+a{ color:inherit; text-decoration:none; }
+button{ font-family:inherit; cursor:pointer; }
+input, select, textarea{ font-family: inherit; background: var(--surface); border:1px solid var(--border); color: var(--text); border-radius: 8px; padding: 9px 11px; font-size: 14px; width:100%; outline: none; transition: border-color .15s ease; }
+input:focus, select:focus, textarea:focus{ border-color: var(--violet); }
+input::placeholder{ color: var(--text-faint); }
+label{ font-size:12px; color: var(--text-muted); font-weight:600; letter-spacing:.03em; text-transform:uppercase; display:block; margin-bottom:6px; }
+:focus-visible{ outline: 2px solid var(--violet); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce){ *{ animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+#app{ display:flex; min-height:100vh; }
+.sidebar{ width: 230px; flex-shrink:0; background: var(--surface); border-right:1px solid var(--border-soft); display:flex; flex-direction:column; position: sticky; top:0; height:100vh; z-index: 40; }
+.brand{ padding: 22px 20px 18px; display:flex; align-items:center; gap:10px; border-bottom:1px solid var(--border-soft); }
+.brand .mark{ width:34px; height:34px; border-radius:8px; background: linear-gradient(145deg, var(--violet), #6C4BB0); display:flex; align-items:center; justify-content:center; font-family: var(--font-display); font-weight:700; font-size:18px; color:#1A1030; box-shadow: 0 0 18px rgba(177,140,242,0.35); }
+.brand .name{ font-family: var(--font-display); font-weight:600; font-size:19px; letter-spacing:.01em; }
+.brand .name span{ color: var(--violet); }
+.role-pill{ margin: 14px 16px 6px; padding: 8px 12px; background: var(--violet-dim); border:1px solid var(--violet); border-radius: var(--radius); font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color: var(--violet); text-align:center; }
+nav.navlist{ padding: 10px 12px; display:flex; flex-direction:column; gap:2px; flex:1; overflow-y:auto; }
+nav.navlist .navitem{ display:flex; align-items:center; gap:11px; padding: 10px 12px; border-radius: 8px; color: var(--text-muted); font-size: 14px; font-weight:500; border:none; background:transparent; width:100%; text-align:left; transition: background .12s ease, color .12s ease; }
+nav.navlist .navitem:hover{ background: var(--surface-hover); color:var(--text); }
+nav.navlist .navitem.active{ background: var(--surface-hover); color: var(--violet); }
+nav.navlist .navitem .ic{ width:18px; text-align:center; font-size:15px; flex-shrink:0; }
+.sidebar-foot{ padding:14px 16px; border-top:1px solid var(--border-soft); font-size:11.5px; color:var(--text-faint); }
+.main{ flex:1; min-width:0; display:flex; flex-direction:column; }
+.topbar{ height:64px; flex-shrink:0; border-bottom:1px solid var(--border-soft); display:flex; align-items:center; justify-content:space-between; padding: 0 28px; position:sticky; top:0; background:rgba(10,15,28,0.85); backdrop-filter:blur(8px); z-index:30; }
+.topbar h1{ font-family: var(--font-display); font-weight:500; font-size:22px; letter-spacing:.01em; }
+.topbar .subtitle{ color:var(--text-muted); font-size:13px; margin-top:2px; }
+.avatar{ width:34px; height:34px; border-radius:50%; background:var(--surface-raised); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--violet); }
+.content{ padding: 26px 28px 60px; max-width: 1280px; }
+.hidden{ display:none !important; }
+.hamburger{ display:none; background:none; border:none; color:var(--text); font-size:20px; padding:6px; }
+.sidebar-scrim{ display:none; }
+
+.grid{ display:grid; gap:16px; }
+.grid-4{ grid-template-columns: repeat(4, 1fr); }
+.grid-3{ grid-template-columns: repeat(3, 1fr); }
+.grid-2{ grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 900px){ .grid-4{ grid-template-columns: repeat(2,1fr);} .grid-3{ grid-template-columns: repeat(2,1fr);} .grid-2{grid-template-columns: 1fr;} }
+@media (max-width: 560px){ .grid-4, .grid-3{ grid-template-columns: 1fr; } }
+
+.card{ background: var(--surface); border:1px solid var(--border-soft); border-radius: var(--radius-lg); padding: 20px; }
+.card-title{ font-family: var(--font-display); font-size:15px; font-weight:500; letter-spacing:.02em; margin-bottom:14px; display:flex; align-items:center; justify-content:space-between; }
+.card-title .hint{ font-size:11px; color:var(--text-faint); font-weight:400; font-family: var(--font-body); }
+.stat-card{ padding:18px 20px; }
+.stat-card .stat-label{ font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--text-faint); font-weight:600; margin-bottom:10px; }
+.stat-card .stat-value{ font-family:var(--font-mono); font-size:30px; font-weight:700; color:var(--text); line-height:1; }
+.stat-card .stat-value.accent{ color: var(--violet); }
+.stat-card .stat-value.green{ color: var(--green); }
+.stat-card .stat-value.red{ color: var(--red-card); }
+.stat-card .stat-sub{ margin-top:8px; font-size:12px; color:var(--text-muted); }
+.stat-card .trend{ font-size:11.5px; font-weight:600; margin-top:6px; }
+.trend.up{ color:var(--green); } .trend.down{ color:var(--red-card); }
+
+.btn{ padding: 9px 16px; border-radius: 8px; font-size: 13.5px; font-weight: 600; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); display:inline-flex; align-items:center; gap:7px; transition: all .12s ease; }
+.btn:hover{ background: var(--surface-hover); border-color: var(--text-faint); }
+.btn-primary{ background: var(--violet); color:#1A1030; border-color: var(--violet); }
+.btn-primary:hover{ background:#c3a5f5; border-color:#c3a5f5; }
+.btn-danger{ background: transparent; color: var(--red-card); border-color: var(--red-dim); }
+.btn-danger:hover{ background: var(--red-dim); }
+.btn-sm{ padding:6px 11px; font-size:12.5px; }
+.btn:disabled{ opacity:.4; cursor:not-allowed; }
+
+.badge{ display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:4px 9px; border-radius:20px; }
+.badge-green{ background: var(--green-dim); color: var(--green); }
+.badge-violet{ background: var(--violet-dim); color: var(--violet); }
+.badge-red{ background: var(--red-dim); color: var(--red-card); }
+.badge-muted{ background: var(--surface-raised); color: var(--text-muted); border:1px solid var(--border); }
+
+table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+thead th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-faint); font-weight:600; padding:0 12px 10px; border-bottom:1px solid var(--border-soft); }
+tbody td{ padding:12px; border-bottom:1px solid var(--border-soft); color:var(--text); }
+tbody tr:last-child td{ border-bottom:none; }
+tbody tr:hover{ background: rgba(255,255,255,0.015); }
+.table-wrap{ overflow-x:auto; }
+.num{ font-family:var(--font-mono); }
+
+.tabs{ display:flex; gap:4px; border-bottom:1px solid var(--border-soft); margin-bottom:20px; flex-wrap:wrap; }
+.tab{ padding:10px 16px; font-size:13.5px; font-weight:600; color:var(--text-muted); border-bottom:2px solid transparent; background:none; border-top:none; border-left:none; border-right:none; }
+.tab.active{ color: var(--violet); border-bottom-color: var(--violet); }
+.tab:hover:not(.active){ color:var(--text); }
+
+.formrow{ display:grid; grid-template-columns: 1fr 1fr; gap:14px; margin-bottom:14px; }
+.formrow.single{ grid-template-columns: 1fr; }
+@media (max-width:560px){ .formrow{ grid-template-columns: 1fr; } }
+.empty{ text-align:center; padding: 46px 20px; color: var(--text-muted); }
+.empty .msg{ font-size:14px; margin-bottom:16px; }
+
+.modal-backdrop{ position:fixed; inset:0; background:rgba(5,8,16,0.7); backdrop-filter: blur(2px); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px; }
+.modal{ background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-lg); width:100%; max-width:480px; max-height:88vh; overflow-y:auto; box-shadow: var(--shadow); }
+.modal-head{ padding:18px 22px; border-bottom:1px solid var(--border-soft); display:flex; align-items:center; justify-content:space-between; }
+.modal-head h3{ font-family:var(--font-display); font-weight:500; font-size:17px; }
+.modal-close{ background:none; border:none; color:var(--text-muted); font-size:20px; padding:2px 6px; }
+.modal-body{ padding:20px 22px; }
+.modal-foot{ padding:16px 22px; border-top:1px solid var(--border-soft); display:flex; justify-content:flex-end; gap:10px; }
+
+.small-muted{ font-size:12px; color:var(--text-faint); }
+.divider{ height:1px; background:var(--border-soft); margin:18px 0; }
+.toast-wrap{ position:fixed; bottom:22px; right:22px; z-index:200; display:flex; flex-direction:column; gap:8px; }
+.toast{ background: var(--surface-raised); border:1px solid var(--green); color:var(--text); padding:12px 16px; border-radius:10px; font-size:13.5px; box-shadow: var(--shadow); display:flex; align-items:center; gap:9px; }
+.toast.err{ border-color: var(--red-card); }
+
+.feature-grid{ display:grid; grid-template-columns: 1.4fr repeat(4, 1fr); gap:0; font-size:13px; }
+.feature-grid .fg-head{ font-weight:700; font-family:var(--font-display); padding:10px 12px; border-bottom:1px solid var(--border-soft); text-align:center; }
+.feature-grid .fg-head:first-child{ text-align:left; }
+.feature-grid .fg-row{ padding:11px 12px; border-bottom:1px solid var(--border-soft); display:flex; align-items:center; }
+.feature-grid .fg-cell{ padding:11px 12px; border-bottom:1px solid var(--border-soft); text-align:center; }
+.chk{ width:18px; height:18px; accent-color: var(--violet); cursor:pointer; }
+
+.league-row{ display:flex; align-items:center; gap:14px; padding:13px 14px; border-radius:10px; border:1px solid var(--border-soft); margin-bottom:8px; background: var(--surface-raised); flex-wrap:wrap; }
+.league-row .lg-name{ flex:1; min-width:160px; font-weight:600; font-size:14px; }
+.league-row .lg-sub{ font-size:11.5px; color:var(--text-faint); width:150px; }
+.league-row .lg-actions{ display:flex; gap:6px; }
+
+@media (max-width: 860px){
+  .sidebar{ position:fixed; left:-240px; top:0; height:100vh; transition: left .2s ease; box-shadow: var(--shadow); }
+  .sidebar.open{ left:0; }
+  .hamburger{ display:block; }
+  .sidebar-scrim.show{ display:block; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:39; }
+  .content{ padding:18px 16px 50px; }
+  .topbar{ padding:0 16px; }
+  .feature-grid{ font-size:11.5px; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="sidebar-scrim" id="scrim"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="mark" style="background:none;box-shadow:none;overflow:hidden;"><img src="icon-192.png" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:8px;"></div>
+      <div class="name">Play<span>Tourn</span></div>
+    </div>
+    <div class="role-pill">Super Admin</div>
+    <nav class="navlist" id="navlist">
+      <button class="navitem" data-view="dashboard"><span class="ic">&#9679;</span> Dashboard</button>
+      <button class="navitem" data-view="leagues"><span class="ic">&#127942;</span> Leagues</button>
+      <button class="navitem" data-view="billing"><span class="ic">&#128176;</span> Billing</button>
+      <button class="navitem" data-view="plans"><span class="ic">&#9881;</span> Features / Plans</button>
+      <button class="navitem" data-view="support"><span class="ic">&#128100;</span> Support</button>
+    </nav>
+    <div class="sidebar-foot">admin.playtourn.ke<br>Signed in as Super Admin</div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <button class="hamburger" id="hamburger">&#9776;</button>
+        <div><h1 id="topbarTitle">Dashboard</h1><div class="subtitle" id="topbarSub">Platform overview across all leagues</div></div>
+      </div>
+      <div class="avatar">SA</div>
+    </div>
+    <div class="content" id="content"></div>
+  </div>
+</div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* =====================================================================
+   SUPER ADMIN — DATA LAYER
+   Mirrors the intended `leagues` / `subscriptions` / invoices-across-
+   tenants schema. Backed by localStorage for now; each league's own
+   operational data (teams, fixtures, etc.) lives in that league's own
+   PlayTourn instance / database row — this console only sees the
+   tenant-level and billing-level rows.
+   ===================================================================== */
+const DB_KEY = 'playtourn_superadmin_v1';
+const PLAN_PRICE = { Free: 0, Starter: 2499, Pro: 4999, Elite: 11999 };
+const PLAN_FEATURES = [
+  { key:'branding', label:'Remove PlayTourn branding' },
+  { key:'sms', label:'SMS notifications' },
+  { key:'mpesa', label:'M-Pesa collections' },
+  { key:'live', label:'Live match centre' },
+  { key:'teammgr', label:'Team Manager role' },
+  { key:'customdomain', label:'Custom domain' },
+  { key:'api', label:'API access' },
+  { key:'scouting', label:'Scouting tools' },
+];
+const DEFAULT_PLAN_MATRIX = {
+  Free:    { branding:false, sms:false, mpesa:false, live:false, teammgr:false, customdomain:false, api:false, scouting:false },
+  Starter: { branding:true,  sms:true,  mpesa:false, live:false, teammgr:false, customdomain:false, api:false, scouting:false },
+  Pro:     { branding:true,  sms:true,  mpesa:true,  live:true,  teammgr:true,  customdomain:false, api:false, scouting:false },
+  Elite:   { branding:true,  sms:true,  mpesa:true,  live:true,  teammgr:true,  customdomain:true,  api:true,  scouting:true },
+};
+
+function seed(){
+  const today = new Date();
+  const daysAgo = n => { const d=new Date(today); d.setDate(d.getDate()-n); return d.toISOString(); };
+  const leagues = [
+    {id:'l1', name:'Eldoret Estates League', subdomain:'eldoretestates', plan:'Pro', status:'active', created_at:daysAgo(58)},
+    {id:'l2', name:'Uasin Gishu Schools', subdomain:'ugschools', plan:'Starter', status:'active', created_at:daysAgo(41)},
+    {id:'l3', name:'Nairobi Corporate 5s', subdomain:'nrbcorp5s', plan:'Elite', status:'active', created_at:daysAgo(30)},
+    {id:'l4', name:'Kisumu Youth League', subdomain:'kisumuyouth', plan:'Free', status:'trial', created_at:daysAgo(6)},
+    {id:'l5', name:'Nakuru Sunday League', subdomain:'nakurusunday', plan:'Starter', status:'suspended', created_at:daysAgo(75)},
+    {id:'l6', name:'Kitale Estates Cup', subdomain:'kitaleestates', plan:'Pro', status:'active', created_at:daysAgo(12)},
+  ];
+  const transactions = [
+    {id:'tx1', league_id:'l1', amount:4999, mpesa_code:'RK7T2X9L1', status:'success', date:daysAgo(3)},
+    {id:'tx2', league_id:'l2', amount:2499, mpesa_code:'RK8P1M4R7', status:'success', date:daysAgo(5)},
+    {id:'tx3', league_id:'l3', amount:11999, mpesa_code:'RK9Q3N2K8', status:'success', date:daysAgo(2)},
+    {id:'tx4', league_id:'l5', amount:2499, mpesa_code:'', status:'failed', date:daysAgo(1)},
+    {id:'tx5', league_id:'l6', amount:4999, mpesa_code:'RK2W5Y8T3', status:'success', date:daysAgo(1)},
+    {id:'tx6', league_id:'l1', amount:4999, mpesa_code:'RK4E7U1I0', status:'success', date:daysAgo(33)},
+  ];
+  const announcements = [];
+  const planMatrix = JSON.parse(JSON.stringify(DEFAULT_PLAN_MATRIX));
+  return { leagues, transactions, announcements, planMatrix };
+}
+function loadData(){
+  const raw = localStorage.getItem(DB_KEY);
+  if(raw){ try{ return JSON.parse(raw); }catch(e){} }
+  const s = seed(); localStorage.setItem(DB_KEY, JSON.stringify(s)); return s;
+}
+function saveData(){ localStorage.setItem(DB_KEY, JSON.stringify(STATE)); }
+function uid(p){ return p + Math.random().toString(36).slice(2,9); }
+let STATE = loadData();
+
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const leagueById = id => STATE.leagues.find(l=>l.id===id);
+const fmtMoney = n => 'KSh ' + Number(n).toLocaleString();
+const fmtDate = iso => new Date(iso).toLocaleDateString('en-KE', {day:'2-digit', month:'short', year:'numeric'});
+
+function toast(msg, isErr=false){
+  const el = document.createElement('div');
+  el.className = 'toast' + (isErr?' err':'');
+  el.innerHTML = `<span style="color:${isErr?'var(--red-card)':'var(--green)'}">&#9679;</span> ${msg}`;
+  $('#toastWrap').appendChild(el);
+  setTimeout(()=>el.remove(), 3200);
+}
+
+/* ---------- metrics ---------- */
+function computeMRR(){ return STATE.leagues.filter(l=>l.status==='active').reduce((s,l)=>s+PLAN_PRICE[l.plan], 0); }
+function computeChurn(){
+  const suspended = STATE.leagues.filter(l=>l.status==='suspended').length;
+  const total = STATE.leagues.length || 1;
+  return ((suspended/total)*100).toFixed(1);
+}
+function newSignupsThisMonth(){
+  const now = new Date();
+  return STATE.leagues.filter(l=>{
+    const c = new Date(l.created_at);
+    return c.getMonth()===now.getMonth() && c.getFullYear()===now.getFullYear();
+  }).length;
+}
+
+/* =====================================================================
+   ROUTER
+   ===================================================================== */
+const VIEW_META = {
+  dashboard: {title:'Dashboard', sub:'Platform overview across all leagues'},
+  leagues: {title:'Leagues', sub:'Every tenant on PlayTourn'},
+  billing: {title:'Billing', sub:'M-Pesa transactions, failed payments, invoices'},
+  plans: {title:'Features / Plans', sub:'Control what each plan unlocks, push announcements'},
+  support: {title:'Support', sub:'Impersonate a league admin to help them'},
+};
+let currentView = 'dashboard';
+function navigate(v){
+  currentView = v;
+  $$('.navitem').forEach(b=>b.classList.toggle('active', b.dataset.view===v));
+  $('#topbarTitle').textContent = VIEW_META[v].title;
+  $('#topbarSub').textContent = VIEW_META[v].sub;
+  render(); closeSidebar(); window.scrollTo(0,0);
+}
+$$('.navitem').forEach(b=>b.addEventListener('click', ()=>navigate(b.dataset.view)));
+function closeSidebar(){ $('#sidebar').classList.remove('open'); $('#scrim').classList.remove('show'); }
+$('#hamburger').addEventListener('click', ()=>{ $('#sidebar').classList.add('open'); $('#scrim').classList.add('show'); });
+$('#scrim').addEventListener('click', closeSidebar);
+
+function render(){
+  const c = $('#content');
+  if(currentView==='dashboard') c.innerHTML = renderDashboard();
+  else if(currentView==='leagues') c.innerHTML = renderLeagues();
+  else if(currentView==='billing') c.innerHTML = renderBilling();
+  else if(currentView==='plans') c.innerHTML = renderPlans();
+  else if(currentView==='support') c.innerHTML = renderSupport();
+  bindEvents();
+}
+
+/* =====================================================================
+   DASHBOARD
+   ===================================================================== */
+function renderDashboard(){
+  const mrr = computeMRR();
+  const active = STATE.leagues.filter(l=>l.status==='active').length;
+  const churn = computeChurn();
+  const signups = newSignupsThisMonth();
+  const recentLeagues = [...STATE.leagues].sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,5);
+  const planCounts = {};
+  STATE.leagues.forEach(l=>planCounts[l.plan]=(planCounts[l.plan]||0)+1);
+
+  return `
+  <div class="grid grid-4" style="margin-bottom:18px;">
+    <div class="card stat-card"><div class="stat-label">MRR</div><div class="stat-value accent">${fmtMoney(mrr)}</div><div class="trend up">&#8593; healthy growth</div></div>
+    <div class="card stat-card"><div class="stat-label">Active leagues</div><div class="stat-value">${active}</div><div class="stat-sub">of ${STATE.leagues.length} total tenants</div></div>
+    <div class="card stat-card"><div class="stat-label">Churn</div><div class="stat-value ${churn>10?'red':''}">${churn}%</div><div class="stat-sub">Suspended / total</div></div>
+    <div class="card stat-card"><div class="stat-label">New signups</div><div class="stat-value green">${signups}</div><div class="stat-sub">This calendar month</div></div>
+  </div>
+  <div class="grid grid-2">
+    <div class="card">
+      <div class="card-title">Recently added leagues</div>
+      ${recentLeagues.map(l=>`
+        <div class="league-row">
+          <div class="lg-name">${l.name}</div>
+          <div class="lg-sub">${l.subdomain}.playtourn.ke</div>
+          <span class="badge badge-violet">${l.plan}</span>
+          <span class="badge ${l.status==='active'?'badge-green':l.status==='suspended'?'badge-red':'badge-muted'}">${l.status}</span>
+        </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="card-title">Leagues by plan</div>
+      ${Object.entries(planCounts).map(([plan,count])=>`
+        <div class="alert-row" style="display:flex; align-items:center; justify-content:space-between; padding:11px 0; border-bottom:1px solid var(--border-soft);">
+          <div>${plan}<span class="small-muted"> &middot; ${fmtMoney(PLAN_PRICE[plan])}/mo</span></div>
+          <div class="num" style="font-weight:700; color:var(--violet);">${count}</div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+/* =====================================================================
+   LEAGUES
+   ===================================================================== */
+function renderLeagues(){
+  return `
+  <div class="card-title" style="margin-bottom:14px;"><span></span><button class="btn btn-primary btn-sm" id="createLeagueBtn">+ Create League</button></div>
+  <div class="card">
+    ${STATE.leagues.map(l=>`
+      <div class="league-row">
+        <div class="lg-name">${l.name}</div>
+        <div class="lg-sub">${l.subdomain}.playtourn.ke</div>
+        <select class="lg-plan" data-planselect="${l.id}" style="width:110px;">
+          ${Object.keys(PLAN_PRICE).map(p=>`<option value="${p}" ${p===l.plan?'selected':''}>${p}</option>`).join('')}
+        </select>
+        <span class="badge ${l.status==='active'?'badge-green':l.status==='suspended'?'badge-red':'badge-muted'}">${l.status}</span>
+        <div class="lg-actions">
+          <button class="btn btn-sm" data-togglestatus="${l.id}">${l.status==='suspended'?'Reactivate':'Suspend'}</button>
+          <button class="btn btn-sm btn-danger" data-delleague="${l.id}">Delete</button>
+        </div>
+      </div>`).join('') || `<div class="empty"><div class="msg">No leagues yet.</div></div>`}
+  </div>`;
+}
+
+/* =====================================================================
+   BILLING
+   ===================================================================== */
+let billingTab = 'transactions';
+function renderBilling(){
+  const failed = STATE.transactions.filter(t=>t.status==='failed');
+  const success = STATE.transactions.filter(t=>t.status==='success');
+  return `
+  <div class="grid grid-3" style="margin-bottom:18px;">
+    <div class="card stat-card"><div class="stat-label">Successful this period</div><div class="stat-value green">${fmtMoney(success.reduce((s,t)=>s+t.amount,0))}</div></div>
+    <div class="card stat-card"><div class="stat-label">Failed payments</div><div class="stat-value red">${failed.length}</div></div>
+    <div class="card stat-card"><div class="stat-label">Total transactions</div><div class="stat-value">${STATE.transactions.length}</div></div>
+  </div>
+  <div class="tabs">
+    <button class="tab ${billingTab==='transactions'?'active':''}" data-billingtab="transactions">M-Pesa transactions</button>
+    <button class="tab ${billingTab==='failed'?'active':''}" data-billingtab="failed">Failed payments</button>
+  </div>
+  <div class="card">
+    <div class="table-wrap"><table>
+      <thead><tr><th>League</th><th>Amount</th><th>M-Pesa code</th><th>Date</th><th>Status</th></tr></thead>
+      <tbody>${(billingTab==='failed'?failed:STATE.transactions).map(t=>`
+        <tr><td>${leagueById(t.league_id)?.name||'—'}</td><td class="num">${fmtMoney(t.amount)}</td>
+        <td class="num small-muted">${t.mpesa_code||'—'}</td><td class="small-muted">${fmtDate(t.date)}</td>
+        <td><span class="badge ${t.status==='success'?'badge-green':'badge-red'}">${t.status}</span></td></tr>
+      `).join('') || `<tr><td colspan="5" class="small-muted">No records.</td></tr>`}</tbody>
+    </table></div>
+  </div>`;
+}
+
+/* =====================================================================
+   FEATURES / PLANS
+   ===================================================================== */
+function renderPlans(){
+  const plans = Object.keys(PLAN_PRICE);
+  return `
+  <div class="card" style="margin-bottom:18px;">
+    <div class="card-title">Plan feature matrix<span class="hint">Toggle what each plan includes</span></div>
+    <div class="feature-grid">
+      <div class="fg-head"></div>
+      ${plans.map(p=>`<div class="fg-head">${p}<div class="small-muted" style="font-family:var(--font-body); font-weight:400;">${fmtMoney(PLAN_PRICE[p])}/mo</div></div>`).join('')}
+      ${PLAN_FEATURES.map(f=>`
+        <div class="fg-row">${f.label}</div>
+        ${plans.map(p=>`<div class="fg-cell"><input type="checkbox" class="chk" data-plan="${p}" data-feature="${f.key}" ${STATE.planMatrix[p][f.key]?'checked':''}></div>`).join('')}
+      `).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Push announcement<span class="hint">Sends to all league admins</span></div>
+    <textarea id="announceText" rows="3" placeholder="e.g. Scheduled maintenance this Sunday 11pm–1am EAT."></textarea>
+    <button class="btn btn-primary" id="sendAnnounceBtn" style="margin-top:12px;">Send to all admins</button>
+    ${STATE.announcements.length ? `<div class="divider"></div>${STATE.announcements.slice().reverse().map(a=>`
+      <div class="alert-row"><div class="dot info" style="background:var(--violet);"></div><div><div class="txt">${a.text}</div><div class="time">${fmtDate(a.date)}</div></div></div>
+    `).join('')}` : ''}
+  </div>`;
+}
+
+/* =====================================================================
+   SUPPORT / IMPERSONATION
+   ===================================================================== */
+function renderSupport(){
+  return `
+  <div class="card">
+    <div class="card-title">Impersonate a league admin<span class="hint">Opens their dashboard so you can help directly</span></div>
+    ${STATE.leagues.map(l=>`
+      <div class="league-row">
+        <div class="lg-name">${l.name}</div>
+        <div class="lg-sub">${l.subdomain}.playtourn.ke</div>
+        <span class="badge ${l.status==='active'?'badge-green':l.status==='suspended'?'badge-red':'badge-muted'}">${l.status}</span>
+        <div class="lg-actions"><button class="btn btn-sm btn-primary" data-impersonate="${l.id}">Impersonate &rarr;</button></div>
+      </div>`).join('')}
+  </div>
+  <div class="card" style="margin-top:16px;">
+    <div class="card-title">How impersonation works</div>
+    <div class="small-muted" style="line-height:1.7;">
+      Clicking "Impersonate" opens that league's admin dashboard (<code>playtourn.html</code>) in a new tab with a session flag,
+      so you see exactly what their League Admin sees — useful for walking someone through a setup issue on a call.
+      In production this should also write an audit-log row (who impersonated which league, when) rather than only a client-side flag.
+    </div>
+  </div>`;
+}
+
+/* =====================================================================
+   MODAL HELPER
+   ===================================================================== */
+function openModal(title, bodyHTML, onSave, saveLabel='Save'){
+  const wrap = document.createElement('div');
+  wrap.className = 'modal-backdrop';
+  wrap.innerHTML = `<div class="modal"><div class="modal-head"><h3>${title}</h3><button class="modal-close">&times;</button></div>
+    <div class="modal-body">${bodyHTML}</div>
+    <div class="modal-foot"><button class="btn" id="modalCancel">Cancel</button><button class="btn btn-primary" id="modalSave">${saveLabel}</button></div></div>`;
+  document.body.appendChild(wrap);
+  const close = ()=>wrap.remove();
+  wrap.querySelector('.modal-close').onclick = close;
+  wrap.querySelector('#modalCancel').onclick = close;
+  wrap.addEventListener('click', e=>{ if(e.target===wrap) close(); });
+  wrap.querySelector('#modalSave').onclick = ()=>{ const ok = onSave(wrap); if(ok!==false) close(); };
+  return wrap;
+}
+
+/* =====================================================================
+   EVENTS
+   ===================================================================== */
+function bindEvents(){
+  if(currentView==='leagues'){
+    $('#createLeagueBtn').onclick = ()=>openModal('Create league', `
+      <div class="formrow single"><div><label>League name</label><input id="mLgName" placeholder="e.g. Meru Highlands League"></div></div>
+      <div class="formrow single"><div><label>Subdomain</label><input id="mLgSub" placeholder="e.g. meruhighlands"></div></div>
+      <div class="formrow single"><div><label>Plan</label><select id="mLgPlan">${Object.keys(PLAN_PRICE).map(p=>`<option>${p}</option>`).join('')}</select></div></div>
+    `, ()=>{
+      const name = $('#mLgName').value.trim(), sub = $('#mLgSub').value.trim();
+      if(!name || !sub) return toast('Name and subdomain are required', true), false;
+      STATE.leagues.push({id:uid('l'), name, subdomain:sub, plan:$('#mLgPlan').value, status:'trial', created_at:new Date().toISOString()});
+      saveData(); toast('League created'); render();
+    });
+    $$('#content [data-planselect]').forEach(s=>s.onchange = ()=>{ leagueById(s.dataset.planselect).plan = s.value; saveData(); toast('Plan updated'); render(); });
+    $$('#content [data-togglestatus]').forEach(b=>b.onclick=()=>{
+      const l = leagueById(b.dataset.togglestatus);
+      l.status = l.status==='suspended' ? 'active' : 'suspended';
+      saveData(); toast(l.status==='suspended' ? 'League suspended' : 'League reactivated'); render();
+    });
+    $$('#content [data-delleague]').forEach(b=>b.onclick=()=>{
+      if(!confirm('Delete this league permanently? This cannot be undone.')) return;
+      STATE.leagues = STATE.leagues.filter(l=>l.id!==b.dataset.delleague);
+      saveData(); toast('League deleted'); render();
+    });
+  }
+  if(currentView==='billing'){
+    $$('#content [data-billingtab]').forEach(b=>b.onclick=()=>{ billingTab=b.dataset.billingtab; render(); });
+  }
+  if(currentView==='plans'){
+    $$('#content .chk').forEach(chk=>chk.onchange = ()=>{
+      STATE.planMatrix[chk.dataset.plan][chk.dataset.feature] = chk.checked;
+      saveData(); toast(`${chk.dataset.plan} plan updated`);
+    });
+    $('#sendAnnounceBtn').onclick = ()=>{
+      const text = $('#announceText').value.trim();
+      if(!text) return toast('Write an announcement first', true);
+      STATE.announcements.push({id:uid('a'), text, date:new Date().toISOString()});
+      saveData(); toast(`Sent to ${STATE.leagues.length} league admins`); $('#announceText').value=''; render();
+    };
+  }
+  if(currentView==='support'){
+    $$('#content [data-impersonate]').forEach(b=>b.onclick=()=>{
+      const l = leagueById(b.dataset.impersonate);
+      localStorage.setItem('playtourn_impersonate_session', JSON.stringify({league_name:l.name, subdomain:l.subdomain, started_at:new Date().toISOString()}));
+      toast(`Opening ${l.name} as impersonated session...`);
+      window.open('playtourn.html?impersonate=' + encodeURIComponent(l.subdomain), '_blank');
+    });
+  }
+}
+
+navigate('dashboard');
+</script>
+</body>
+</html>
