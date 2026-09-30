@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Eldoret Estates League — PlayTourn</title>
+<meta name="theme-color" content="#0b0d10">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Eldoret Estates League">
+<meta property="og:description" content="Football league software for Kenyan leagues.">
+<meta property="og:image" content="og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Trionda palette — white ball base, with red/Canada, green/Mexico, blue/USA swirls, gold/trophy trim */
+    --bg:#F7F6F1;
+    --surface:#FFFFFF;
+    --surface-2:#F1EFE8;
+    --surface-3:#E6E3D9;
+    --border:#DEDBCE;
+    --text:#15171B;
+    --text-dim:#565A62;
+    --text-faint:#93979F;
+    --accent:#C9971F;
+    --accent-dim:#F8EDD3;
+    --lime:#238C46;
+    --red:#D93C34;
+    --red-dim:#FBE5E2;
+    --blue:#255BC7;
+    --blue-dim:#E7EDFB;
+    --green:#238C46;
+    --green-dim:#E3F3E7;
+    --yellow:#C9971F;
+    --yellow-dim:#F8EDD3;
+    --radius:14px;
+    --font-display:'Oswald',sans-serif;
+    --font-body:'Inter',sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+  html,body{overflow-x:hidden;max-width:100%;}
+  body{
+    background:var(--bg);color:var(--text);font-family:var(--font-body);
+    font-size:14.5px;line-height:1.55;-webkit-font-smoothing:antialiased;
+  }
+  body{
+    background-image:radial-gradient(circle at 12% 0%, rgba(217,60,52,.06), transparent 40%),
+      radial-gradient(circle at 90% 15%, rgba(37,91,199,.06), transparent 42%),
+      radial-gradient(circle at 50% 100%, rgba(35,140,70,.05), transparent 45%);
+  }
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;}
+  img{max-width:100%;display:block;}
+  ::selection{background:var(--accent);color:#1A1200;}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px;}
+
+  /* ---------- Nav ---------- */
+  header.site{
+    position:sticky;top:0;z-index:60;
+    background:rgba(255,255,255,.88);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .trionda-stripe{
+    height:3px;width:100%;
+    background:linear-gradient(90deg,var(--red) 0 25%,var(--green) 25% 50%,var(--blue) 50% 75%,var(--accent) 75% 100%);
+  }
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:62px;}
+  .logo{display:flex;align-items:center;gap:10px;}
+  .logo-mark{
+    width:34px;height:34px;border-radius:8px;
+    background:linear-gradient(135deg,var(--accent),#c97a12);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:700;font-size:14px;color:#1A1200;
+  }
+  .logo-text{font-family:var(--font-display);font-weight:600;font-size:16.5px;letter-spacing:.01em;}
+  .logo-text small{display:block;font-family:var(--font-mono);font-size:9px;color:var(--text-faint);letter-spacing:.14em;text-transform:uppercase;font-weight:400;}
+  nav.site-links{display:flex;gap:2px;}
+  .site-link{
+    padding:8px 13px;border-radius:7px;font-size:13px;font-weight:600;color:var(--text-dim);
+    border-bottom:2px solid transparent;
+  }
+  .site-link:hover{color:var(--text);}
+  .site-link.active{color:var(--text);background:var(--surface-2);}
+  .nav-toggle{display:none;background:none;border:none;color:var(--text);font-size:20px;}
+
+  @media(max-width:760px){
+    nav.site-links{
+      position:fixed;top:62px;left:0;right:0;
+      flex-direction:column;background:var(--surface);
+      border-bottom:1px solid var(--border);
+      padding:8px;display:none;gap:2px;
+    }
+    nav.site-links.open{display:flex;}
+    .site-link{padding:11px 14px;}
+    .nav-toggle{display:block;}
+    .finder-btn span.ft-label{display:none;}
+    .finder-btn{padding:8px 10px;}
+  }
+
+  /* ---------- Sponsor ticker ---------- */
+  .sponsor-strip{
+    border-bottom:1px solid var(--border);
+    background:var(--surface);
+    overflow:hidden;
+  }
+  .sponsor-track{
+    display:flex;white-space:nowrap;padding:8px 0;
+    font-family:var(--font-mono);font-size:10.5px;letter-spacing:.09em;
+    color:var(--text-faint);text-transform:uppercase;
+    animation:sponsor-scroll 26s linear infinite;
+  }
+  .sponsor-item{padding:0 28px;display:flex;align-items:center;gap:8px;}
+  .sponsor-item .sq{width:5px;height:5px;background:var(--accent);border-radius:1px;}
+  @keyframes sponsor-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  section{padding:44px 0;}
+  .section-head{margin-bottom:22px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  .eyebrow{font-family:var(--font-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+  h1,h2,h3{font-family:var(--font-display);font-weight:600;letter-spacing:.01em;}
+  h2{font-size:24px;}
+
+  /* ---------- Hero ---------- */
+  .hero{padding-top:40px;}
+  .hero-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:20px;align-items:stretch;}
+  .matchup-card{
+    background:linear-gradient(160deg,var(--surface-2),var(--surface));
+    border:1px solid var(--border);border-radius:var(--radius);
+    padding:28px;position:relative;overflow:hidden;
+  }
+  .matchup-card::before{
+    content:'';position:absolute;inset:0;
+    background-image:repeating-linear-gradient(180deg, rgba(0,0,0,.025) 0 1px, transparent 1px 26px);
+    pointer-events:none;
+  }
+  .kickoff-tag{
+    display:inline-flex;align-items:center;gap:6px;
+    font-family:var(--font-mono);font-size:11px;color:var(--yellow);
+    background:var(--yellow-dim);padding:5px 11px;border-radius:20px;margin-bottom:20px;
+  }
+  .kickoff-tag .p{width:6px;height:6px;border-radius:50%;background:var(--yellow);animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .vs-row{display:flex;align-items:center;justify-content:space-between;gap:16px;position:relative;z-index:1;}
+  .team-block{flex:1;text-align:center;}
+  .crest{
+    width:64px;height:64px;border-radius:14px;margin:0 auto 12px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:700;font-size:20px;
+  }
+  .crest.home{background:linear-gradient(135deg,var(--blue-dim),#dfe8fa);color:var(--blue);border:1px solid var(--border);}
+  .crest.away{background:linear-gradient(135deg,var(--red-dim),#fbdcd8);color:var(--red);border:1px solid var(--border);}
+  .team-block .tname{font-weight:600;font-size:15px;}
+  .team-block .trec{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);margin-top:3px;}
+  .vs-mid{font-family:var(--font-display);font-size:26px;color:var(--text-faint);padding:0 6px;}
+  .match-meta{
+    margin-top:22px;padding-top:18px;border-top:1px solid var(--border);
+    display:flex;gap:20px;flex-wrap:wrap;font-size:12.5px;color:var(--text-dim);
+    position:relative;z-index:1;
+  }
+  .match-meta span b{color:var(--text);}
+
+  .sponsor-hero{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:22px;display:flex;flex-direction:column;justify-content:space-between;
+  }
+  .sponsor-hero .lbl{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;}
+  .sponsor-banner{
+    flex:1;border-radius:10px;
+    background:repeating-linear-gradient(45deg,var(--surface-2),var(--surface-2) 10px,var(--surface-3) 10px,var(--surface-3) 20px);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--text-dim);
+    min-height:120px;text-align:center;padding:14px;
+  }
+  .sponsor-hero p{margin-top:12px;font-size:12px;color:var(--text-faint);}
+  @media(max-width:480px){
+    .hero{padding-top:24px;}
+    .matchup-card{padding:18px;}
+    .crest{width:48px;height:48px;font-size:15px;border-radius:11px;}
+    .vs-row{gap:8px;}
+    .vs-mid{font-size:18px;padding:0 2px;}
+    .team-block .tname{font-size:12.5px;}
+    .team-block .trec{font-size:10px;}
+    .kickoff-tag{font-size:10px;padding:4px 9px;margin-bottom:14px;}
+    .match-meta{gap:10px;font-size:11px;margin-top:16px;padding-top:14px;}
+    .sponsor-hero{padding:16px;}
+    .sponsor-banner{min-height:90px;font-size:13px;}
+  }
+
+  /* ---------- Filter bar ---------- */
+  .filter-bar{display:flex;gap:8px;flex-wrap:wrap;}
+  .filter-chip{
+    padding:7px 13px;border-radius:20px;font-size:12.5px;font-weight:600;
+    background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);
+  }
+  .filter-chip.active{background:var(--accent);border-color:var(--accent);color:#1A1200;}
+
+  /* ---------- Fixture cards ---------- */
+  .fixture-list{display:grid;gap:10px;}
+  .fixture-row{
+    display:grid;grid-template-columns:90px 1fr auto;align-items:center;gap:16px;
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;
+  }
+  .fixture-row:hover{border-color:var(--surface-3);}
+  .fx-date{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);line-height:1.4;}
+  .fx-date b{display:block;color:var(--text-dim);font-size:13px;}
+  .fx-teams{display:flex;align-items:center;gap:12px;font-weight:600;font-size:14px;}
+  .fx-teams .mini-crest{width:26px;height:26px;border-radius:6px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:10px;color:var(--text-dim);flex-shrink:0;}
+  .fx-teams .vs{color:var(--text-faint);font-weight:400;font-size:12px;}
+  .fx-score{font-family:var(--font-mono);font-weight:600;font-size:16px;letter-spacing:.02em;}
+  .fx-status{
+    font-family:var(--font-mono);font-size:10.5px;padding:4px 9px;border-radius:20px;text-align:center;white-space:nowrap;
+  }
+  .fx-status.done{background:var(--surface-3);color:var(--text-faint);}
+  .fx-status.live{background:var(--red);color:#fff;animation:pulse 1.6s infinite;}
+  .fx-status.upcoming{background:var(--yellow-dim);color:var(--yellow);}
+  @media(max-width:560px){
+    .fixture-row{grid-template-columns:1fr;gap:8px;padding:13px 14px;}
+    .fx-date{display:flex;gap:6px;}
+    .fx-date b{display:inline;}
+    .fx-teams{font-size:13px;flex-wrap:wrap;gap:8px;}
+    .fixture-row>div:last-child{display:flex;align-items:center;gap:10px;text-align:left;}
+  }
+
+  /* ---------- Live match ---------- */
+  .live-panel{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
+  }
+  .live-scoreboard{
+    background:var(--surface-2);padding:28px;text-align:center;position:relative;
+    border-bottom:1px solid var(--border);
+  }
+  .live-badge{
+    position:absolute;top:16px;left:18px;
+    display:flex;align-items:center;gap:6px;
+    font-family:var(--font-mono);font-size:10.5px;color:var(--red);font-weight:600;
+  }
+  .live-badge .p{width:6px;height:6px;border-radius:50%;background:var(--red);animation:pulse 1.2s infinite;}
+  .live-minute{position:absolute;top:16px;right:18px;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);}
+  .live-vs{display:flex;align-items:center;justify-content:center;gap:28px;margin-top:20px;}
+  .live-vs .team-block .tname{font-size:16px;}
+  .live-score-num{font-family:var(--font-mono);font-weight:700;font-size:44px;color:var(--text);}
+  .timeline{padding:20px 24px;}
+  .tl-item{display:flex;gap:14px;padding:11px 0;border-top:1px solid var(--border);font-size:13px;}
+  .tl-item:first-child{border-top:none;}
+  .tl-min{font-family:var(--font-mono);color:var(--text-faint);width:34px;flex-shrink:0;}
+  .tl-icon{width:20px;text-align:center;flex-shrink:0;}
+  .tl-desc b{color:var(--text);}
+  .tl-desc{color:var(--text-dim);}
+  @media(max-width:480px){
+    .live-scoreboard{padding:20px 16px;}
+    .live-vs{gap:14px;}
+    .live-vs .crest{width:48px;height:48px;font-size:15px;}
+    .live-vs .team-block .tname{font-size:13px;}
+    .live-score-num{font-size:32px;}
+    .timeline{padding:16px 18px;}
+  }
+
+  /* ---------- Table + stats ---------- */
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;}
+  .tab-btn{padding:10px 14px;font-size:13px;font-weight:600;color:var(--text-faint);border-bottom:2px solid transparent;}
+  .tab-btn.active{color:var(--text);border-color:var(--accent);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{text-align:left;font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);padding:0 14px 10px;font-weight:500;}
+  thead th.num{text-align:center;}
+  tbody tr{border-top:1px solid var(--border);}
+  tbody tr:hover{background:var(--surface-2);}
+  tbody td{padding:11px 14px;color:var(--text-dim);}
+  tbody td.num{text-align:center;font-family:var(--font-mono);}
+  tbody td.strong{color:var(--text);font-weight:600;}
+  .pos-badge{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:20px;height:20px;border-radius:5px;font-family:var(--font-mono);font-size:11px;font-weight:600;
+    background:var(--surface-3);color:var(--text-dim);margin-right:10px;
+  }
+  .pos-badge.qualify{background:var(--green-dim);color:var(--green);}
+  .table-panel,.stats-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;overflow-x:auto;}
+  .export-btn{padding:7px 13px;border-radius:7px;background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);font-size:12px;font-weight:600;}
+
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:16px;}
+  .stat-mini{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;}
+  .stat-mini h4{font-size:12px;color:var(--text-faint);font-weight:600;margin-bottom:10px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;}
+  .stat-mini .srow{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;}
+  .stat-mini .srow b{color:var(--text);font-family:var(--font-mono);}
+  @media(max-width:760px){.stats-grid{grid-template-columns:1fr;}}
+
+  /* ---------- Teams ---------- */
+  .teams-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  .team-card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    padding:20px;text-align:center;transition:border-color .15s,transform .15s;cursor:pointer;
+  }
+  .team-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+  .team-card .crest{width:56px;height:56px;font-size:17px;background:linear-gradient(135deg,var(--surface-3),var(--surface-2));color:var(--accent);border:1px solid var(--border);}
+  .team-card .tname{font-weight:600;font-size:14px;margin-bottom:4px;}
+  .team-card .tmeta{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);}
+  @media(max-width:760px){.teams-grid{grid-template-columns:repeat(2,1fr);}}
+
+  @media(max-width:760px){.hero-grid{grid-template-columns:1fr;}}
+
+  footer{border-top:1px solid var(--border);padding:30px 0;margin-top:20px;}
+  .foot-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--text-faint);}
+
+  ::-webkit-scrollbar{height:8px;width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+
+  .page-view{display:none;}
+  .page-view.active{display:block;animation:fadein .3s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ---------- League finder ---------- */
+  .finder-btn{
+    display:flex;align-items:center;gap:6px;
+    padding:8px 13px;border-radius:7px;background:var(--surface-2);border:1px solid var(--border);
+    color:var(--text-dim);font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;
+  }
+  .finder-btn:hover{color:var(--text);border-color:var(--accent);}
+  .finder-overlay{
+    position:fixed;inset:0;z-index:200;
+    background:rgba(15,13,8,.55);backdrop-filter:blur(6px);
+    display:none;align-items:flex-start;justify-content:center;
+    padding:60px 20px;overflow-y:auto;
+  }
+  .finder-overlay.show{display:flex;}
+  .finder-panel{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    width:100%;max-width:480px;padding:26px;box-shadow:0 30px 80px rgba(0,0,0,.25);
+  }
+  .finder-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;gap:12px;}
+  .finder-head p{font-size:12.5px;color:var(--text-faint);margin-top:6px;}
+  .finder-close{background:none;border:none;font-size:18px;color:var(--text-faint);cursor:pointer;flex-shrink:0;}
+  #finderSearch{
+    width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;
+    padding:11px 13px;color:var(--text);font-family:inherit;font-size:13.5px;margin-bottom:14px;
+  }
+  #finderSearch:focus{outline:none;border-color:var(--accent);}
+  .finder-results{display:grid;gap:8px;max-height:360px;overflow-y:auto;}
+  .finder-card{
+    display:flex;align-items:center;gap:12px;padding:12px 14px;
+    background:var(--surface-2);border:1px solid var(--border);border-radius:10px;
+    cursor:pointer;transition:border-color .15s;
+  }
+  .finder-card:hover{border-color:var(--accent);}
+  .finder-crest{
+    width:38px;height:38px;border-radius:9px;flex-shrink:0;
+    background:linear-gradient(135deg,var(--surface-3),var(--surface));
+    color:var(--accent);display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:700;font-size:13px;border:1px solid var(--border);
+  }
+  .finder-name{font-weight:600;font-size:13.5px;}
+  .finder-sub{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);}
+  .finder-arrow{margin-left:auto;color:var(--text-faint);flex-shrink:0;}
+  .finder-empty{padding:20px;text-align:center;color:var(--text-faint);font-size:12.5px;}
+  .foot-logo{width:20px;height:20px;border-radius:5px;vertical-align:middle;margin-right:8px;}
+</style>
+</head>
+<body>
+
+<div class="finder-overlay" id="finderOverlay">
+  <div class="finder-panel">
+    <div class="finder-head">
+      <div>
+        <div class="eyebrow">PlayTourn</div>
+        <h2>Find your league</h2>
+        <p id="finderIntro">Search by league name or town to view its fixtures, table and teams.</p>
+      </div>
+      <button class="finder-close" id="finderCloseBtn" aria-label="Close">✕</button>
+    </div>
+    <input type="text" id="finderSearch" placeholder="Search leagues or tournaments…" oninput="renderFinderResults()">
+    <div class="finder-results" id="finderResults"></div>
+    <div class="finder-empty" id="finderEmpty" style="display:none;">No leagues match your search.</div>
+  </div>
+</div>
+
+<header class="site">
+  <div class="wrap nav-inner">
+    <div class="logo">
+      <div class="logo-mark" id="logoMark">EE</div>
+      <div class="logo-text"><span id="logoName">Eldoret Estates League</span><small>Powered by PlayTourn</small></div>
+    </div>
+    <nav class="site-links" id="siteLinks">
+      <a class="site-link active" data-page="home">Home</a>
+      <a class="site-link" data-page="fixtures">Fixtures</a>
+      <a class="site-link" data-page="live">Live</a>
+      <a class="site-link" data-page="table">Table &amp; Stats</a>
+      <a class="site-link" data-page="teams">Teams</a>
+    </nav>
+    <button class="finder-btn" onclick="openFinder(false)">🔍<span class="ft-label"> Find a league</span></button>
+    <button class="nav-toggle" onclick="document.getElementById('siteLinks').classList.toggle('open')">☰</button>
+  </div>
+  <div class="sponsor-strip">
+    <div class="sponsor-track" id="sponsorTrack"></div>
+  </div>
+  <div class="trionda-stripe"></div>
+</header>
+
+<main class="wrap">
+
+  <!-- ========== HOME ========== -->
+  <div class="page-view active" id="page-home">
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="matchup-card">
+          <div class="kickoff-tag"><span class="p"></span>Next fixture · Sat, 12:00 PM</div>
+          <div class="vs-row">
+            <div class="team-block">
+              <div class="crest home">KP</div>
+              <div class="tname">Kapseret FC</div>
+              <div class="trec">P8 · W5 D2 L1</div>
+            </div>
+            <div class="vs-mid">VS</div>
+            <div class="team-block">
+              <div class="crest away">LU</div>
+              <div class="tname">Langas United</div>
+              <div class="trec">P8 · W4 D3 L1</div>
+            </div>
+          </div>
+          <div class="match-meta">
+            <span>📍 <b>Kipkaren Pitch 1</b></span>
+            <span>🏆 <b>Season 1 · Matchweek 9</b></span>
+            <span>🎟 <b>Free entry</b></span>
+          </div>
+        </div>
+        <div class="sponsor-hero">
+          <div>
+            <div class="lbl">Sponsored by</div>
+            <div class="sponsor-banner">Rift Valley<br>Hardware &amp; Supplies</div>
+          </div>
+          <p>Proud sponsor of Eldoret Estates League, Season 1</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div>
+          <div class="eyebrow">This week</div>
+          <h2>Upcoming fixtures</h2>
+        </div>
+        <a class="site-link" onclick="goPage('fixtures')" style="cursor:pointer;">See all →</a>
+      </div>
+      <div class="fixture-list" id="homeFixtures"></div>
+    </section>
+
+    <section>
+      <div class="section-head">
+        <div><div class="eyebrow">Standings</div><h2>Top of the table</h2></div>
+        <a class="site-link" onclick="goPage('table')" style="cursor:pointer;">Full table →</a>
+      </div>
+      <div class="table-panel">
+        <table id="homeTableMini"></table>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========== FIXTURES / RESULTS ========== -->
+  <div class="page-view" id="page-fixtures">
+    <section style="padding-top:32px;">
+      <div class="section-head">
+        <div><div class="eyebrow">Season 1</div><h2>Fixtures &amp; results</h2></div>
+      </div>
+      <div class="filter-bar" id="weekFilter" style="margin-bottom:18px;"></div>
+      <div class="fixture-list" id="fixturesFull"></div>
+    </section>
+  </div>
+
+  <!-- ========== LIVE MATCH ========== -->
+  <div class="page-view" id="page-live">
+    <section style="padding-top:32px;">
+      <div class="section-head">
+        <div><div class="eyebrow">Matchday 9</div><h2>Live match</h2></div>
+      </div>
+      <div class="live-panel">
+        <div class="live-scoreboard">
+          <div class="live-badge"><span class="p"></span>LIVE</div>
+          <div class="live-minute">67'</div>
+          <div class="live-vs">
+            <div class="team-block">
+              <div class="crest home" style="margin-bottom:8px;">KP</div>
+              <div class="tname">Kapseret FC</div>
+            </div>
+            <div class="live-score-num">2 – 1</div>
+            <div class="team-block">
+              <div class="crest away" style="margin-bottom:8px;">LU</div>
+              <div class="tname">Langas United</div>
+            </div>
+          </div>
+        </div>
+        <div class="timeline" id="matchTimeline"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========== TABLE + STATS ========== -->
+  <div class="page-view" id="page-table">
+    <section style="padding-top:32px;">
+      <div class="section-head">
+        <div><div class="eyebrow">Season 1</div><h2>League table</h2></div>
+        <button class="export-btn" onclick="alert('Exporting standings as PDF…')">Export PDF</button>
+      </div>
+      <div class="table-panel">
+        <table id="fullTable"></table>
+      </div>
+    </section>
+    <section>
+      <div class="section-head"><div><div class="eyebrow">Leaders</div><h2>Top performers</h2></div></div>
+      <div class="stats-grid" id="statsGrid"></div>
+    </section>
+  </div>
+
+  <!-- ========== TEAMS ========== -->
+  <div class="page-view" id="page-teams">
+    <section style="padding-top:32px;">
+      <div class="section-head">
+        <div><div class="eyebrow">12 teams</div><h2>Teams &amp; squads</h2></div>
+      </div>
+      <div class="teams-grid" id="teamsGrid"></div>
+    </section>
+  </div>
+
+
+</main>
+
+<footer>
+  <div class="wrap foot-inner">
+    <span><img class="foot-logo" src="icon-192.png" alt="">© 2026 Eldoret Estates League · Built on PlayTourn</span>
+    <span>Kipkaren, Uasin Gishu · Season 1</span>
+  </div>
+</footer>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+/* =====================================================================
+   FIREBASE — leagues directory (multi-tenant lookup)
+   Replace with your PlayTourn Firebase project's config. Same project
+   your Super Admin console writes to when creating/banning leagues —
+   this file only ever READS the `leagues` collection (name, subdomain,
+   plan, status), so Firestore rules can make it public-read.
+   ===================================================================== */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDmvhhmrqH3Cyj4sq9pVUea3uZzXEP58ew",
+  authDomain: "prolific-xi.firebaseapp.com",
+  projectId: "prolific-xi",
+  storageBucket: "prolific-xi.firebasestorage.app",
+  messagingSenderId: "401830608753",
+  appId: "1:401830608753:web:2864da194dbd312f1780d0"
+};
+
+let db = null;
+let firebaseReady = false;
+const isPlaceholderConfig = FIREBASE_CONFIG.apiKey === "YOUR_API_KEY" || !FIREBASE_CONFIG.apiKey;
+if(!isPlaceholderConfig){
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    db = firebase.firestore();
+    firebaseReady = true;
+  }catch(e){
+    console.warn('Firebase failed to initialize — falling back to the demo league directory.', e);
+  }
+}else{
+  console.warn('FIREBASE_CONFIG still has placeholder values — using the demo league directory. Fill in your real project keys to go live.');
+}
+</script>
+<script>
+/* ================= LEAGUE DIRECTORY + SUBDOMAIN ROUTING ================= */
+// Used until Firebase is configured, or if a Firestore read fails —
+// keeps the finder functional for local/demo browsing either way.
+const demoLeagueDirectory = [
+  {name:"Eldoret Estates League", subdomain:"eldoretestates", plan:"Pro", status:"active"},
+  {name:"Uasin Gishu Schools", subdomain:"uasinschools", plan:"Elite", status:"active"},
+  {name:"Nairobi Corporate 5s", subdomain:"nrbcorporate", plan:"Starter", status:"active"},
+  {name:"Rongai Sunday League", subdomain:"rongaisunday", plan:"Pro", status:"active"},
+];
+let leagueDirectory = [];
+
+// Never let a stalled network call leave the finder stuck loading —
+// race any Firestore call against a timeout and fall back to demo data.
+function withTimeout(promise, ms, label){
+  return Promise.race([
+    promise,
+    new Promise((_,reject)=> setTimeout(()=>reject(new Error(`${label} timed out after ${ms}ms`)), ms))
+  ]);
+}
+
+async function loadLeagueDirectory(){
+  if(firebaseReady){
+    try{
+      const snap = await withTimeout(
+        db.collection('leagues').where('status','==','active').get(),
+        8000, 'League directory load'
+      );
+      leagueDirectory = snap.docs.map(d=>({id:d.id, ...d.data()}));
+      if(leagueDirectory.length===0) leagueDirectory = demoLeagueDirectory;
+      return;
+    }catch(e){
+      console.warn('Could not read leagues from Firestore, using demo directory:', e);
+      firebaseReady = false; // stop retrying a project that isn't answering
+    }
+  }
+  leagueDirectory = demoLeagueDirectory;
+}
+
+function getRequestedSubdomain(){
+  // ?league=slug lets you test routing on GitHub Pages / localhost,
+  // where there's no real *.playtourn.ke DNS to read from.
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('league')) return params.get('league').toLowerCase().trim();
+
+  const host = window.location.hostname;
+  const parts = host.split('.');
+  if(host.endsWith('playtourn.ke') && parts.length > 2 && parts[0] !== 'admin' && parts[0] !== 'www'){
+    return parts[0].toLowerCase();
+  }
+  return null; // apex domain, admin, localhost, github.io preview, etc.
+}
+
+async function resolveLeagueContext(){
+  await loadLeagueDirectory();
+  const slug = getRequestedSubdomain();
+  if(!slug){
+    openFinder(true);
+    return;
+  }
+  const match = leagueDirectory.find(l => (l.subdomain||'').toLowerCase() === slug);
+  if(match){
+    applyLeagueBranding(match);
+    closeFinder();
+  }else{
+    document.getElementById('finderIntro').textContent =
+      `We couldn't find a league at "${slug}.playtourn.ke". Search for it below.`;
+    openFinder(true);
+  }
+}
+
+function applyLeagueBranding(league){
+  document.title = `${league.name} — PlayTourn`;
+  document.getElementById('logoMark').textContent = initials(league.name);
+  document.getElementById('logoName').textContent = league.name;
+}
+
+function openFinder(forced){
+  const overlay = document.getElementById('finderOverlay');
+  overlay.classList.add('show');
+  overlay.dataset.forced = forced ? '1' : '0';
+  document.getElementById('finderCloseBtn').style.visibility = forced ? 'hidden' : 'visible';
+  renderFinderResults();
+  document.getElementById('finderSearch').focus();
+}
+function closeFinder(){
+  document.getElementById('finderOverlay').classList.remove('show');
+}
+document.getElementById('finderCloseBtn').addEventListener('click', closeFinder);
+document.getElementById('finderOverlay').addEventListener('click', e=>{
+  if(e.target.id==='finderOverlay' && document.getElementById('finderOverlay').dataset.forced!=='1') closeFinder();
+});
+
+function renderFinderResults(){
+  const q = (document.getElementById('finderSearch').value||'').toLowerCase();
+  const results = leagueDirectory.filter(l=>
+    l.name.toLowerCase().includes(q) || (l.subdomain||'').toLowerCase().includes(q));
+  document.getElementById('finderEmpty').style.display = results.length ? 'none' : 'block';
+  document.getElementById('finderResults').innerHTML = results.map(l=>`
+    <div class="finder-card" onclick="goToLeague('${l.subdomain}')">
+      <div class="finder-crest">${initials(l.name)}</div>
+      <div>
+        <div class="finder-name">${l.name}</div>
+        <div class="finder-sub">${l.subdomain}.playtourn.ke</div>
+      </div>
+      <span class="finder-arrow">→</span>
+    </div>`).join('');
+}
+
+function goToLeague(subdomain){
+  const host = window.location.hostname;
+  if(host.endsWith('playtourn.ke')){
+    window.location.href = `${window.location.protocol}//${subdomain}.playtourn.ke/`;
+  }else{
+    const url = new URL(window.location.href);
+    url.searchParams.set('league', subdomain);
+    window.location.href = url.toString();
+  }
+}
+
+/* ================= DATA (mock — wire to Postgres/Supabase later) ================= */
+const fixtures = [
+  {week:9, date:"Sat 12 Jul", time:"12:00 PM", home:"Kapseret FC", away:"Langas United", hs:null, as:null, status:"upcoming"},
+  {week:9, date:"Sat 12 Jul", time:"2:30 PM", home:"Elgon View FC", away:"Kipkaren Rangers", hs:null, as:null, status:"upcoming"},
+  {week:9, date:"Sun 13 Jul", time:"11:00 AM", home:"Pioneer Boys", away:"Race Course FC", hs:null, as:null, status:"upcoming"},
+  {week:8, date:"Sat 05 Jul", time:"12:00 PM", home:"Kapseret FC", away:"Elgon View FC", hs:3, as:1, status:"done"},
+  {week:8, date:"Sat 05 Jul", time:"2:30 PM", home:"Langas United", away:"Pioneer Boys", hs:2, as:2, status:"done"},
+  {week:8, date:"Sun 06 Jul", time:"11:00 AM", home:"Kipkaren Rangers", away:"Race Course FC", hs:1, as:0, status:"done"},
+  {week:7, date:"Sat 28 Jun", time:"12:00 PM", home:"Race Course FC", away:"Kapseret FC", hs:0, as:2, status:"done"},
+  {week:7, date:"Sat 28 Jun", time:"2:30 PM", home:"Pioneer Boys", away:"Kipkaren Rangers", hs:1, as:1, status:"done"},
+];
+
+const standings = [
+  {pos:1, team:"Kapseret FC", p:8, w:5, d:2, l:1, gf:19, ga:9, pts:17},
+  {pos:2, team:"Langas United", p:8, w:4, d:3, l:1, gf:15, ga:8, pts:15},
+  {pos:3, team:"Kipkaren Rangers", p:8, w:4, d:2, l:2, gf:14, ga:10, pts:14},
+  {pos:4, team:"Elgon View FC", p:8, w:3, d:2, l:3, gf:12, ga:12, pts:11},
+  {pos:5, team:"Pioneer Boys", p:8, w:2, d:4, l:2, gf:11, ga:11, pts:10},
+  {pos:6, team:"Race Course FC", p:8, w:1, d:2, l:5, gf:7, ga:18, pts:5},
+];
+
+const topScorers = [
+  {name:"D. Kiprotich", team:"Kapseret FC", val:11},
+  {name:"J. Wanyama", team:"Langas United", val:9},
+  {name:"S. Mutai", team:"Kipkaren Rangers", val:7},
+];
+const topAssists = [
+  {name:"P. Cheruiyot", team:"Kapseret FC", val:8},
+  {name:"M. Barasa", team:"Elgon View FC", val:6},
+  {name:"K. Rono", team:"Langas United", val:5},
+];
+const cleanSheets = [
+  {name:"E. Simiyu", team:"Kapseret FC", val:4},
+  {name:"A. Njoroge", team:"Langas United", val:3},
+  {name:"T. Kiplagat", team:"Kipkaren Rangers", val:3},
+];
+
+const teams = [
+  {name:"Kapseret FC", area:"Kapseret", players:18},
+  {name:"Langas United", area:"Langas", players:20},
+  {name:"Kipkaren Rangers", area:"Kipkaren", players:17},
+  {name:"Elgon View FC", area:"Elgon View", players:19},
+  {name:"Pioneer Boys", area:"Pioneer", players:16},
+  {name:"Race Course FC", area:"Race Course", players:18},
+];
+
+const timelineEvents = [
+  {min:"67'", icon:"⚽", desc:"<b>D. Kiprotich</b> scores! Kapseret FC lead 2–1"},
+  {min:"54'", icon:"🟨", desc:"<b>M. Barasa</b> (Langas United) booked for a late challenge"},
+  {min:"41'", icon:"⚽", desc:"<b>J. Wanyama</b> equalises for Langas United, 1–1"},
+  {min:"23'", icon:"🔄", desc:"<b>P. Cheruiyot</b> replaces an injured teammate"},
+  {min:"12'", icon:"⚽", desc:"<b>D. Kiprotich</b> opens the scoring, Kapseret FC 1–0"},
+  {min:"0'", icon:"▶", desc:"Kickoff at Kipkaren Pitch 1"},
+];
+
+const sponsors = ["Rift Valley Hardware & Supplies","Eldoret Fresh Meats","Uasin Motors","Highland Dairy Co-op","Sunrise Pharmacy"];
+
+/* ================= NAV ================= */
+function goPage(name){
+  document.querySelectorAll('.site-link').forEach(el=>el.classList.toggle('active', el.dataset.page===name));
+  document.querySelectorAll('.page-view').forEach(el=>el.classList.toggle('active', el.id==='page-'+name));
+  document.getElementById('siteLinks').classList.remove('open');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.getElementById('siteLinks').addEventListener('click', e=>{
+  const item = e.target.closest('.site-link');
+  if(item) goPage(item.dataset.page);
+});
+
+/* ================= RENDER: sponsor strip ================= */
+function renderSponsors(){
+  const items = sponsors.map(s=>`<div class="sponsor-item"><span class="sq"></span>${s}</div>`).join('');
+  document.getElementById('sponsorTrack').innerHTML = items + items;
+}
+
+/* ================= RENDER: fixtures ================= */
+function initials(name){
+  return name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+}
+function fixtureRow(f){
+  const statusLabel = f.status==='done' ? 'FT' : f.status==='live' ? 'LIVE' : 'Upcoming';
+  const score = f.status==='done' ? `${f.hs} – ${f.as}` : f.time;
+  return `
+    <div class="fixture-row">
+      <div class="fx-date"><b>${f.date.split(' ')[0]}</b>${f.date.split(' ')[1]} ${f.date.split(' ')[2]}</div>
+      <div class="fx-teams">
+        <span class="mini-crest">${initials(f.home)}</span>${f.home}
+        <span class="vs">vs</span>
+        ${f.away}<span class="mini-crest">${initials(f.away)}</span>
+      </div>
+      <div style="text-align:right;">
+        <div class="fx-score">${score}</div>
+        <div class="fx-status ${f.status}">${statusLabel}</div>
+      </div>
+    </div>`;
+}
+function renderHomeFixtures(){
+  const upcoming = fixtures.filter(f=>f.status==='upcoming').slice(0,3);
+  document.getElementById('homeFixtures').innerHTML = upcoming.map(fixtureRow).join('');
+}
+let activeWeek = 'all';
+function renderWeekFilter(){
+  const weeks = ['all', ...new Set(fixtures.map(f=>f.week))].sort((a,b)=> a==='all'?-1: b==='all'?1: b-a);
+  document.getElementById('weekFilter').innerHTML = weeks.map(w=>`
+    <div class="filter-chip ${activeWeek===w?'active':''}" onclick="setWeek('${w}')">${w==='all'?'All weeks':'Week '+w}</div>
+  `).join('');
+}
+function setWeek(w){
+  activeWeek = w==='all' ? 'all' : Number(w);
+  renderWeekFilter();
+  renderFixturesFull();
+}
+function renderFixturesFull(){
+  const list = activeWeek==='all' ? fixtures : fixtures.filter(f=>f.week===activeWeek);
+  document.getElementById('fixturesFull').innerHTML = list.map(fixtureRow).join('');
+}
+
+/* ================= RENDER: table ================= */
+function tableHTML(rows, full){
+  const head = `<thead><tr><th>#</th><th>Team</th><th class="num">P</th><th class="num">W</th><th class="num">D</th><th class="num">L</th>${full?'<th class="num">GF</th><th class="num">GA</th><th class="num">GD</th>':''}<th class="num">Pts</th></tr></thead>`;
+  const body = rows.map(r=>`
+    <tr>
+      <td><span class="pos-badge ${r.pos<=2?'qualify':''}">${r.pos}</span></td>
+      <td class="strong">${r.team}</td>
+      <td class="num">${r.p}</td><td class="num">${r.w}</td><td class="num">${r.d}</td><td class="num">${r.l}</td>
+      ${full?`<td class="num">${r.gf}</td><td class="num">${r.ga}</td><td class="num">${r.gf-r.ga>0?'+':''}${r.gf-r.ga}</td>`:''}
+      <td class="num strong">${r.pts}</td>
+    </tr>`).join('');
+  return head + '<tbody>' + body + '</tbody>';
+}
+function renderTables(){
+  document.getElementById('homeTableMini').innerHTML = tableHTML(standings.slice(0,5), false);
+  document.getElementById('fullTable').innerHTML = tableHTML(standings, true);
+}
+
+/* ================= RENDER: stats ================= */
+function statBlock(title, rows){
+  return `<div class="stat-mini"><h4>${title}</h4>${rows.map(r=>`
+    <div class="srow"><span>${r.name} <span style="color:var(--text-faint);">· ${r.team}</span></span><b>${r.val}</b></div>
+  `).join('')}</div>`;
+}
+function renderStats(){
+  document.getElementById('statsGrid').innerHTML =
+    statBlock('Top scorers', topScorers) +
+    statBlock('Top assists', topAssists) +
+    statBlock('Clean sheets', cleanSheets);
+}
+
+/* ================= RENDER: teams ================= */
+function renderTeams(){
+  document.getElementById('teamsGrid').innerHTML = teams.map(t=>`
+    <div class="team-card" onclick="alert('${t.name} squad — coming soon')">
+      <div class="crest">${initials(t.name)}</div>
+      <div class="tname">${t.name}</div>
+      <div class="tmeta">${t.area} · ${t.players} players</div>
+    </div>`).join('');
+}
+
+/* ================= RENDER: live timeline ================= */
+function renderTimeline(){
+  document.getElementById('matchTimeline').innerHTML = timelineEvents.map(e=>`
+    <div class="tl-item">
+      <div class="tl-min">${e.min}</div>
+      <div class="tl-icon">${e.icon}</div>
+      <div class="tl-desc">${e.desc}</div>
+    </div>`).join('');
+}
+
+/* ================= INIT ================= */
+resolveLeagueContext();
+renderSponsors();
+renderHomeFixtures();
+renderWeekFilter();
+renderFixturesFull();
+renderTables();
+renderStats();
+renderTeams();
+renderTimeline();
+</script>
+</body>
+</html>
