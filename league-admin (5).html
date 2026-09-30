@@ -1,0 +1,1534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Eldoret Estates League — Admin</title>
+<meta name="theme-color" content="#0b0d10">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:title" content="League Admin">
+<meta property="og:description" content="Football league software for Kenyan leagues.">
+<meta property="og:image" content="og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Trionda palette — white ball base, red/Canada, green/Mexico, blue/USA, gold/trophy trim */
+    --bg:#F7F6F1;
+    --surface:#FFFFFF;
+    --surface-2:#F1EFE8;
+    --surface-3:#E6E3D9;
+    --border:#DEDBCE;
+    --text:#15171B;
+    --text-dim:#565A62;
+    --text-faint:#93979F;
+    --accent:#C9971F;
+    --accent-dim:#F8EDD3;
+    --red:#D93C34;
+    --red-dim:#FBE5E2;
+    --green:#238C46;
+    --green-dim:#E3F3E7;
+    --blue:#255BC7;
+    --blue-dim:#E7EDFB;
+    --yellow:#C9971F;
+    --yellow-dim:#F8EDD3;
+    --radius:10px;
+    --font-display:'Oswald',sans-serif;
+    --font-body:'Inter',sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-text-size-adjust:100%;}
+  html,body{overflow-x:hidden;max-width:100%;}
+  body{
+    background:var(--bg);color:var(--text);font-family:var(--font-body);
+    font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+    background-image:linear-gradient(var(--border) 1px, transparent 1px);
+    background-size:100% 64px;background-attachment:fixed;background-position:0 -1px;
+  }
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;}
+  ::selection{background:var(--accent);color:#1A1200;}
+
+  /* ---------- Layout ---------- */
+  .shell{display:flex;min-height:100vh;}
+  .sidebar{
+    width:232px;flex-shrink:0;background:var(--surface);
+    border-right:1px solid var(--border);
+    display:flex;flex-direction:column;
+    position:fixed;top:0;bottom:0;left:0;z-index:40;
+    transition:transform .25s ease;
+  }
+  .brand{padding:22px 20px 18px;border-bottom:1px solid var(--border);}
+  .brand-mark{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:.02em;display:flex;align-items:baseline;gap:7px;}
+  .brand-mark span.dot{color:var(--accent);}
+  .brand-sub{margin-top:3px;font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;color:var(--text-faint);text-transform:uppercase;}
+  nav.mainnav{padding:14px 12px;flex:1;overflow-y:auto;}
+  .nav-item{
+    display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:8px;
+    color:var(--text-dim);font-size:13.5px;font-weight:500;border-left:2px solid transparent;
+    cursor:pointer;margin-bottom:2px;transition:background .15s, color .15s;
+  }
+  .nav-item:hover{background:var(--surface-2);color:var(--text);}
+  .nav-item.active{color:var(--text);background:var(--surface-2);border-left:2px solid var(--accent);}
+  .nav-item .ic{width:16px;text-align:center;opacity:.85;font-size:14px;}
+  .nav-num{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);margin-left:auto;}
+  .nav-num.warn{color:var(--yellow);}
+  .sidebar-foot{padding:16px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--text-faint);}
+  .sidebar-foot .who{color:var(--text-dim);font-weight:600;}
+
+  .main{margin-left:232px;flex:1;min-width:0;}
+  .topbar{
+    height:60px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;padding:0 26px;
+    position:sticky;top:0;background:rgba(255,255,255,.85);backdrop-filter:blur(8px);z-index:30;
+  }
+  .topbar-left{display:flex;align-items:center;gap:14px;}
+  .menu-btn{display:none;background:none;border:none;color:var(--text);font-size:18px;}
+  .page-title{font-family:var(--font-display);font-size:18px;font-weight:600;letter-spacing:.01em;}
+  .page-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--text-faint);text-transform:uppercase;}
+  .topbar-right{display:flex;align-items:center;gap:16px;}
+  .search-box{background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:7px 12px;font-size:12.5px;color:var(--text-dim);width:200px;}
+  .avatar{
+    width:32px;height:32px;border-radius:7px;
+    background:linear-gradient(135deg,var(--accent),#c97a12);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:600;font-size:13px;color:#1A1200;
+  }
+
+  .page{padding:26px 26px 60px;max-width:1280px;}
+  .page-section{display:none;}
+  .page-section.active{display:block;animation:fadein .3s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ---------- Ticker ---------- */
+  .ticker-wrap{border:1px solid var(--border);background:var(--surface);border-radius:var(--radius);overflow:hidden;margin-bottom:22px;position:relative;}
+  .ticker-label{position:absolute;left:0;top:0;bottom:0;background:var(--accent);color:#1A1200;font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;display:flex;align-items:center;padding:0 12px;z-index:2;text-transform:uppercase;}
+  .ticker-track{display:flex;white-space:nowrap;padding:11px 0 11px 108px;animation:scroll-ticker 30s linear infinite;font-family:var(--font-mono);font-size:12px;}
+  .ticker-wrap:hover .ticker-track{animation-play-state:paused;}
+  .ticker-item{padding:0 26px;color:var(--text-dim);display:flex;align-items:center;gap:8px;}
+  .ticker-item b{color:var(--text);font-weight:600;}
+  .tdot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;}
+  .tdot.warn{background:var(--yellow);}
+  .tdot.bad{background:var(--red);}
+  @keyframes scroll-ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* ---------- Stat cards ---------- */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 18px 16px;position:relative;overflow:hidden;}
+  .stat-card::after{content:'';position:absolute;bottom:0;left:18px;right:18px;height:2px;background:linear-gradient(90deg,var(--accent),transparent);}
+  .stat-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:10px;}
+  .stat-value{font-family:var(--font-mono);font-weight:600;font-size:28px;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+  .stat-value .unit{font-size:14px;color:var(--text-dim);font-weight:500;margin-left:2px;}
+  .stat-delta{margin-top:8px;font-size:11.5px;font-weight:600;display:flex;align-items:center;gap:5px;}
+  .stat-delta.up{color:var(--green);}
+  .stat-delta.down{color:var(--red);}
+  .stat-delta.warn{color:var(--yellow);}
+
+  /* ---------- Panels ---------- */
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px;}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap;}
+  .panel-title{font-family:var(--font-display);font-size:15px;font-weight:600;letter-spacing:.01em;}
+  .panel-title small{display:block;font-family:var(--font-body);font-size:11.5px;color:var(--text-faint);font-weight:400;margin-top:2px;}
+  .panel-body{padding:20px;}
+  .grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+
+  /* ---------- Buttons ---------- */
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:7px;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:var(--surface-2);color:var(--text);transition:background .15s,border-color .15s;}
+  .btn:hover{background:var(--surface-3);}
+  .btn-accent{background:var(--accent);border-color:var(--accent);color:#1A1200;}
+  .btn-accent:hover{background:#ffb43e;}
+  .btn-danger{background:var(--red-dim);border-color:#F2C1BB;color:var(--red);}
+  .btn-danger:hover{background:#F7D3CC;}
+  .btn-success{background:var(--green-dim);border-color:#B9E0C6;color:var(--green);}
+  .btn-success:hover{background:#D2EDDA;}
+  .btn-ghost{background:transparent;border-color:transparent;color:var(--text-dim);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--text);}
+  .btn-sm{padding:5px 10px;font-size:11.5px;}
+  .btn-block{width:100%;justify-content:center;}
+
+  /* ---------- Tables ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{text-align:left;font-family:var(--font-mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-faint);padding:0 20px 10px;font-weight:500;}
+  thead th.num{text-align:center;}
+  tbody tr{border-top:1px solid var(--border);}
+  tbody tr:hover{background:var(--surface-2);}
+  tbody td{padding:13px 20px;color:var(--text-dim);vertical-align:middle;}
+  tbody td.num{text-align:center;font-family:var(--font-mono);}
+  tbody td.strong{color:var(--text);font-weight:600;}
+  tbody td.mono{font-family:var(--font-mono);font-size:12px;}
+  .row-actions{display:flex;gap:6px;justify-content:flex-end;}
+  .table-scroll{overflow-x:auto;}
+
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;font-family:var(--font-mono);}
+  .badge .d{width:5px;height:5px;border-radius:50%;}
+  .badge-active,.badge-paid,.badge-approved{background:var(--green-dim);color:var(--green);}
+  .badge-active .d,.badge-paid .d,.badge-approved .d{background:var(--green);}
+  .badge-pending,.badge-trial{background:var(--yellow-dim);color:var(--yellow);}
+  .badge-pending .d,.badge-trial .d{background:var(--yellow);}
+  .badge-banned,.badge-failed,.badge-suspended,.badge-overdue{background:var(--red-dim);color:var(--red);}
+  .badge-banned .d,.badge-failed .d,.badge-suspended .d,.badge-overdue .d{background:var(--red);}
+  .badge-info{background:var(--blue-dim);color:var(--blue);}
+  .badge-info .d{background:var(--blue);}
+
+  /* ---------- Toggle switch ---------- */
+  .switch{position:relative;width:34px;height:19px;flex-shrink:0;border-radius:20px;background:var(--surface-3);border:1px solid var(--border);cursor:pointer;transition:background .15s;}
+  .switch::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--text-faint);transition:transform .15s, background .15s;}
+  .switch.on{background:var(--accent-dim);border-color:var(--accent);}
+  .switch.on::after{transform:translateX(15px);background:var(--accent);}
+
+  /* ---------- Forms ---------- */
+  label{display:block;font-size:11.5px;font-weight:600;color:var(--text-dim);margin-bottom:6px;letter-spacing:.01em;}
+  input[type=text],input[type=number],input[type=date],input[type=time],input[type=color],select,textarea{
+    width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:7px;
+    padding:9px 11px;color:var(--text);font-family:inherit;font-size:13px;
+  }
+  input[type=color]{padding:3px 5px;height:38px;cursor:pointer;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);}
+  .field{margin-bottom:14px;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  textarea{resize:vertical;min-height:80px;}
+  .hint{font-size:11.5px;color:var(--text-faint);margin-top:6px;}
+
+  /* ---------- Modal ---------- */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(6,12,8,.7);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;overflow-y:auto;}
+  .modal-backdrop.show{display:flex;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.5);margin:auto;}
+  .modal.modal-lg{max-width:720px;}
+  .modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .modal-head h3{font-family:var(--font-display);font-size:16px;font-weight:600;}
+  .modal-close{background:none;border:none;color:var(--text-faint);font-size:18px;}
+  .modal-body{padding:20px 22px;max-height:70vh;overflow-y:auto;}
+  .modal-foot{padding:16px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+
+  .empty-state{padding:40px 20px;text-align:center;color:var(--text-faint);font-size:12.5px;}
+  ::-webkit-scrollbar{height:8px;width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+</style>
+<style>
+  /* ---------- Alerts feed (Home) ---------- */
+  .alert-feed{display:grid;gap:8px;}
+  .alert-row{display:flex;gap:12px;padding:12px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;align-items:flex-start;}
+  .alert-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;background:var(--blue);}
+  .alert-dot.warn{background:var(--yellow);}
+  .alert-dot.bad{background:var(--red);}
+  .alert-dot.ok{background:var(--green);}
+  .alert-text{font-size:13px;color:var(--text-dim);}
+  .alert-text b{color:var(--text);}
+  .alert-time{font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);margin-top:3px;}
+
+  /* ---------- Fixtures: week groups ---------- */
+  .week-group{margin-bottom:18px;}
+  .week-group-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .week-group-head h4{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);font-weight:600;}
+  .week-group-head::after{content:'';flex:1;height:1px;background:var(--border);}
+  .fx-card{display:grid;grid-template-columns:80px 1fr auto auto;align-items:center;gap:14px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:8px;}
+  .fx-card .fdate{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);line-height:1.4;}
+  .fx-card .fdate b{display:block;color:var(--text-dim);font-size:13px;}
+  .fx-card .fteams{font-weight:600;font-size:13.5px;color:var(--text);}
+  .fx-card .fteams span{color:var(--text-faint);font-weight:400;font-size:11.5px;}
+  .fx-card .fvenue{font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);}
+  @media(max-width:700px){.fx-card{grid-template-columns:1fr;text-align:left;}.fx-card .row-actions{justify-content:flex-start;}}
+
+  /* ---------- Venues ---------- */
+  .venue-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  .venue-card{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
+  .venue-card .vname{font-weight:600;font-size:13.5px;margin-bottom:3px;}
+  .venue-card .vloc{font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);}
+  @media(max-width:760px){.venue-grid{grid-template-columns:1fr 1fr;}.grid-3{grid-template-columns:1fr;}}
+
+  /* ---------- Tabs ---------- */
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);padding:0 20px;}
+  .tab-btn{padding:12px 14px;font-size:12.5px;font-weight:600;color:var(--text-faint);border-bottom:2px solid transparent;cursor:pointer;}
+  .tab-btn.active{color:var(--text);border-color:var(--accent);}
+  .tab-view{display:none;}
+  .tab-view.active{display:block;}
+
+  /* ---------- Squad / players ---------- */
+  .player-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--border);}
+  .player-row:first-child{border-top:none;}
+  .player-num{width:26px;height:26px;border-radius:6px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);flex-shrink:0;}
+  .player-name{font-weight:600;font-size:13px;flex:1;}
+  .player-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);}
+
+  /* ---------- Match centre ---------- */
+  .scoreboard{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:26px;text-align:center;margin-bottom:20px;}
+  .sb-teams{display:flex;align-items:center;justify-content:center;gap:24px;}
+  .sb-team{flex:1;max-width:200px;}
+  .sb-team .tname{font-weight:600;font-size:14px;margin-bottom:10px;}
+  .sb-score-controls{display:flex;align-items:center;justify-content:center;gap:10px;}
+  .score-btn{width:30px;height:30px;border-radius:7px;background:var(--surface-3);border:1px solid var(--border);color:var(--text);font-size:15px;font-weight:700;}
+  .score-btn:hover{background:var(--accent);color:#1A1200;border-color:var(--accent);}
+  .sb-score-num{font-family:var(--font-mono);font-weight:700;font-size:36px;color:var(--text);min-width:44px;}
+  .sb-mid{font-family:var(--font-display);font-size:20px;color:var(--text-faint);padding:0 10px;}
+  .sb-minute{margin-top:16px;font-family:var(--font-mono);font-size:12px;color:var(--text-dim);}
+  .event-log{display:grid;gap:8px;margin-top:14px;}
+  .event-row{display:flex;gap:10px;padding:9px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:7px;font-size:12.5px;align-items:center;}
+  .event-row .emin{font-family:var(--font-mono);color:var(--text-faint);width:30px;}
+  .event-row .etxt b{color:var(--text);}
+  .event-row .etxt{color:var(--text-dim);}
+
+  /* ---------- Branding ---------- */
+  .logo-upload{
+    width:88px;height:88px;border-radius:14px;border:1.5px dashed var(--border);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    color:var(--text-faint);font-size:11px;text-align:center;cursor:pointer;background:var(--surface-2);
+  }
+  .logo-upload:hover{border-color:var(--accent);color:var(--accent);}
+  .color-row{display:flex;align-items:center;gap:12px;}
+  .color-row .swatch-input{width:52px;flex-shrink:0;}
+  .color-preview{
+    margin-top:16px;border-radius:10px;border:1px solid var(--border);padding:18px;
+    display:flex;align-items:center;gap:14px;
+  }
+  .color-preview .pv-crest{width:44px;height:44px;border-radius:10px;flex-shrink:0;}
+  .color-preview .pv-name{font-family:var(--font-display);font-weight:600;font-size:14px;}
+  .color-preview .pv-sub{font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);}
+  .sponsor-drop{
+    border:1.5px dashed var(--border);border-radius:10px;padding:26px;text-align:center;
+    color:var(--text-faint);font-size:12.5px;cursor:pointer;
+  }
+  .sponsor-drop:hover{border-color:var(--accent);color:var(--accent);}
+  .domain-row{display:flex;align-items:center;gap:0;}
+  .domain-prefix,.domain-suffix{background:var(--surface-3);border:1px solid var(--border);padding:9px 11px;font-family:var(--font-mono);font-size:12.5px;color:var(--text-faint);white-space:nowrap;}
+  .domain-prefix{border-radius:7px 0 0 7px;border-right:none;}
+  .domain-suffix{border-radius:0 7px 7px 0;border-left:none;}
+  .domain-row input{border-radius:0;text-align:center;}
+
+  /* ---------- Auth gate ---------- */
+  .authgate{
+    position:fixed;inset:0;z-index:300;background:var(--bg);
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .authgate.hide{display:none;}
+  .authpanel{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:30px;}
+  .authpanel .brand-mark{font-family:var(--font-display);font-weight:700;font-size:20px;margin-bottom:4px;}
+  .authpanel .brand-mark span.dot{color:var(--accent);}
+  .authpanel h2{font-family:var(--font-display);font-size:16px;font-weight:600;margin:14px 0 4px;}
+  .authpanel p{font-size:12.5px;color:var(--text-faint);margin-bottom:18px;}
+  .auth-error{background:var(--red-dim);color:var(--red);border-radius:7px;padding:9px 12px;font-size:12px;margin-bottom:14px;display:none;}
+  .auth-error.show{display:block;}
+  .auth-status{text-align:center;color:var(--text-faint);font-size:12.5px;padding:40px 0;}
+
+  /* ---------- Mode badge ---------- */
+  .mode-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:4px 10px;border-radius:20px;font-family:var(--font-mono);font-size:10.5px;font-weight:600;
+    background:var(--surface-3);color:var(--text-faint);
+  }
+  .mode-badge .d{width:6px;height:6px;border-radius:50%;background:var(--text-faint);}
+  .mode-badge.live{background:var(--green-dim);color:var(--green);}
+  .mode-badge.live .d{background:var(--green);}
+  .mode-badge.demo{background:var(--yellow-dim);color:var(--yellow);}
+  .mode-badge.demo .d{background:var(--yellow);}
+
+  @media(max-width:920px){
+    .stat-grid{grid-template-columns:1fr 1fr;}
+    .grid-2,.grid-3{grid-template-columns:1fr;}
+    .sidebar{transform:translateX(-100%);}
+    .sidebar.open{transform:translateX(0);}
+    .main{margin-left:0;}
+    .menu-btn{display:block;}
+    .search-box{display:none;}
+  }
+  .auth-logo{display:block;width:100%;border-radius:10px;margin-bottom:14px;}
+  .side-icon{width:26px;height:26px;border-radius:6px;align-self:center;}
+</style>
+</head>
+<body>
+
+<div class="authgate" id="authGate">
+  <div class="authpanel">
+    <img class="auth-logo" src="brand-logo.jpg" alt="Prolifi — Football League Software">
+    <div id="authStatusView" class="auth-status">Resolving your league…</div>
+    <div id="authFormView" style="display:none;">
+      <h2>League Admin sign in</h2>
+      <p id="authLeagueLabel">Sign in to manage your league.</p>
+      <div class="auth-error" id="authError"></div>
+      <div class="field"><label>Email</label><input type="email" id="authEmail" autocomplete="username" placeholder="you@league.ke"></div>
+      <div class="field"><label>Password</label><input type="password" id="authPassword" autocomplete="current-password" placeholder="••••••••"></div>
+      <button class="btn btn-accent btn-block" onclick="doSignIn()">Sign in</button>
+      <p style="margin-top:14px;">Not configured with Firebase yet? <a href="#" style="color:var(--accent);" onclick="enterDemoMode();return false;">Continue in demo mode →</a></p>
+    </div>
+  </div>
+</div>
+
+<div class="shell" id="appShell" style="display:none;">
+
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><img class="side-icon" src="icon-192.png" alt="">PLAY<span class="dot">TOURN</span></div>
+      <div class="brand-sub" id="brandSub">Eldoret Estates League · Admin</div>
+    </div>
+    <nav class="mainnav" id="mainnav">
+      <div class="nav-item active" data-page="home"><span class="ic">⌂</span>Home</div>
+      <div class="nav-item" data-page="setup"><span class="ic">⚙</span>Setup</div>
+      <div class="nav-item" data-page="teams"><span class="ic">⬡</span>Teams &amp; Players<span class="nav-num warn" id="navPendingCount">2</span></div>
+      <div class="nav-item" data-page="fixtures"><span class="ic">▦</span>Fixtures</div>
+      <div class="nav-item" data-page="match"><span class="ic">⚡</span>Match Centre</div>
+      <div class="nav-item" data-page="table"><span class="ic">▤</span>Table</div>
+      <div class="nav-item" data-page="finance"><span class="ic">◈</span>Finance<span class="nav-num warn" id="navUnpaidCount">3</span></div>
+      <div class="nav-item" data-page="branding"><span class="ic">◆</span>Branding</div>
+      <div class="nav-item" data-page="comms"><span class="ic">✉</span>Comms</div>
+    </nav>
+    <div class="sidebar-foot">
+      Signed in as<br><span class="who" id="sidebarWho">—</span>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div>
+          <div class="page-eyebrow" id="pageEyebrow">Overview</div>
+          <div class="page-title" id="pageTitle">Home</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="mode-badge demo" id="modeBadge"><span class="d"></span>Demo data</span>
+        <input class="search-box" type="text" placeholder="Search teams, players, fixtures…">
+        <button class="btn btn-ghost btn-sm" onclick="doSignOut()">Sign out</button>
+        <div class="avatar" id="avatarInitials">FK</div>
+      </div>
+    </div>
+    <div style="height:3px;background:linear-gradient(90deg,var(--red) 0 25%,var(--green) 25% 50%,var(--blue) 50% 75%,var(--accent) 75% 100%);"></div>
+
+    <div class="page">
+
+      <!-- ========== HOME ========== -->
+      <section class="page-section active" id="page-home">
+        <div class="ticker-wrap">
+          <div class="ticker-label">Alerts</div>
+          <div class="ticker-track" id="tickerTrack"></div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Fixtures this week</div>
+            <div class="stat-value">3</div>
+            <div class="stat-delta up">▲ Matchweek 9</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Unpaid teams</div>
+            <div class="stat-value">3<span class="unit">/ 6 teams</span></div>
+            <div class="stat-delta warn">KSh 7,500 outstanding</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Pending approvals</div>
+            <div class="stat-value">2</div>
+            <div class="stat-delta warn">Needs review</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Open alerts</div>
+            <div class="stat-value">4</div>
+            <div class="stat-delta down">2 urgent</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Fixtures this week<small>Matchweek 9</small></div>
+              <button class="btn btn-ghost btn-sm" onclick="goPage('fixtures')">Open fixtures →</button>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Date</th><th>Fixture</th><th>Venue</th><th>Status</th></tr></thead>
+                <tbody id="homeFixturesTable"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Unpaid teams<small>Season 1 fees</small></div>
+              <button class="btn btn-ghost btn-sm" onclick="goPage('finance')">Open finance →</button>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Team</th><th>Owed</th></tr></thead>
+                <tbody id="homeUnpaidTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Recent alerts &amp; notifications</div></div>
+          <div class="panel-body">
+            <div class="alert-feed" id="alertFeed"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== SETUP ========== -->
+      <section class="page-section" id="page-setup">
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Season<small>Current season details</small></div></div>
+            <div class="panel-body">
+              <div class="field"><label>Season name</label><input type="text" id="seasonName" value="Season 1"></div>
+              <div class="field-row">
+                <div class="field"><label>Start date</label><input type="date" id="seasonStart" value="2026-04-06"></div>
+                <div class="field"><label>End date</label><input type="date" id="seasonEnd" value="2026-09-20"></div>
+              </div>
+              <div class="field"><label>Status</label>
+                <select id="seasonStatus"><option selected>Active</option><option>Upcoming</option><option>Completed</option></select>
+              </div>
+              <button class="btn btn-accent" onclick="saveSeason()">Save season</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Points system<small>Used to auto-compute the table</small></div></div>
+            <div class="panel-body">
+              <div class="field-row-3">
+                <div class="field"><label>Win</label><input type="number" id="ptsWin" value="3"></div>
+                <div class="field"><label>Draw</label><input type="number" id="ptsDraw" value="1"></div>
+                <div class="field"><label>Loss</label><input type="number" id="ptsLoss" value="0"></div>
+              </div>
+              <div class="field"><label>Tiebreaker order</label>
+                <select id="tiebreak">
+                  <option>Goal difference → Goals for → Head-to-head</option>
+                  <option>Head-to-head → Goal difference → Goals for</option>
+                  <option>Goals for → Goal difference</option>
+                </select>
+              </div>
+              <button class="btn btn-accent" onclick="savePoints()">Save points system</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Rules<small>Shown to coaches on registration</small></div></div>
+          <div class="panel-body">
+            <div class="field">
+              <textarea id="rulesText" style="min-height:110px;">Squad size: max 20 players, min 14. All players must submit a valid national ID or birth certificate copy before their first match. Two yellow cards in separate matches = automatic 1-match suspension. Teams forfeiting twice in a season may be removed from the league.</textarea>
+            </div>
+            <button class="btn btn-accent" onclick="saveRules()">Save rules</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Venues / Pitches</div>
+            <button class="btn btn-accent btn-sm" onclick="openModal('venueModal')">+ Add venue</button>
+          </div>
+          <div class="panel-body">
+            <div class="venue-grid" id="venueGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== TEAMS & PLAYERS ========== -->
+      <section class="page-section" id="page-teams">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Pending approvals<small>New teams awaiting review</small></div>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Team</th><th>Coach</th><th>Submitted</th><th>Players</th><th></th></tr></thead>
+              <tbody id="pendingTeamsTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Approved teams<small id="teamCountSub">6 teams</small></div>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Team</th><th>Coach</th><th>Players</th><th>Fees</th><th></th></tr></thead>
+              <tbody id="approvedTeamsTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Suspensions<small>Active bans from disciplinary cards</small></div></div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Player</th><th>Team</th><th>Reason</th><th>Matches left</th></tr></thead>
+              <tbody id="suspensionsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== FIXTURES ========== -->
+      <section class="page-section" id="page-fixtures">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Fixtures<small>Season 1 · drag isn't available in this preview — use Reschedule</small></div>
+            <button class="btn btn-accent btn-sm" onclick="autoGenerateFixtures()">⚡ Auto-generate fixtures</button>
+          </div>
+          <div class="panel-body" id="fixturesByWeek"></div>
+        </div>
+      </section>
+
+      <!-- ========== MATCH CENTRE ========== -->
+      <section class="page-section" id="page-match">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Select fixture</div>
+          </div>
+          <div class="panel-body">
+            <select id="matchFixtureSelect" onchange="loadMatch()"></select>
+          </div>
+        </div>
+
+        <div class="scoreboard">
+          <div class="sb-teams">
+            <div class="sb-team">
+              <div class="tname" id="mHomeName">—</div>
+              <div class="sb-score-controls">
+                <button class="score-btn" onclick="adjustScore('home',-1)">−</button>
+                <div class="sb-score-num" id="mHomeScore">0</div>
+                <button class="score-btn" onclick="adjustScore('home',1)">+</button>
+              </div>
+            </div>
+            <div class="sb-mid">VS</div>
+            <div class="sb-team">
+              <div class="tname" id="mAwayName">—</div>
+              <div class="sb-score-controls">
+                <button class="score-btn" onclick="adjustScore('away',-1)">−</button>
+                <div class="sb-score-num" id="mAwayScore">0</div>
+                <button class="score-btn" onclick="adjustScore('away',1)">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="sb-minute">Kickoff not yet started</div>
+        </div>
+
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Add event<small>Goal, card, or substitution</small></div></div>
+            <div class="panel-body">
+              <div class="field-row">
+                <div class="field"><label>Minute</label><input type="number" id="evMinute" placeholder="e.g. 34"></div>
+                <div class="field"><label>Type</label>
+                  <select id="evType"><option value="⚽">Goal</option><option value="🟨">Yellow card</option><option value="🟥">Red card</option><option value="🔄">Substitution</option></select>
+                </div>
+              </div>
+              <div class="field"><label>Description</label><input type="text" id="evDesc" placeholder="e.g. D. Kiprotich scores from a corner"></div>
+              <button class="btn btn-accent btn-block" onclick="addMatchEvent()">Add to timeline</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Timeline</div></div>
+            <div class="panel-body">
+              <div class="event-log" id="matchEventLog"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-body" style="display:flex;justify-content:flex-end;gap:10px;">
+            <button class="btn btn-ghost" onclick="alert('Lineups saved as draft.')">Save lineups</button>
+            <button class="btn btn-success" onclick="postResult()">Post final result</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== TABLE ========== -->
+      <section class="page-section" id="page-table">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">League table<small>Auto-computed from posted results</small></div>
+            <button class="btn btn-ghost btn-sm" onclick="alert('Exporting standings as PDF…')">Export PDF</button>
+          </div>
+          <div class="table-scroll">
+            <table id="standingsTable"></table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== FINANCE ========== -->
+      <section class="page-section" id="page-finance">
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Collected</div>
+            <div class="stat-value">KSh 15,000</div>
+            <div class="stat-delta up">6 of 6 teams billed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Owed</div>
+            <div class="stat-value">KSh 7,500</div>
+            <div class="stat-delta warn">3 teams outstanding</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Fines outstanding</div>
+            <div class="stat-value">KSh 1,000</div>
+            <div class="stat-delta down">2 fines unpaid</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Next fee due</div>
+            <div class="stat-value">Aug 1</div>
+            <div class="stat-delta up">Season 1, round 2</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Fees owed / paid</div>
+            <button class="btn btn-accent btn-sm" onclick="openModal('paymentModal')">+ Record payment</button>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Team</th><th>Amount</th><th>Status</th><th>M-Pesa code</th></tr></thead>
+              <tbody id="feesTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Fines</div></div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Team / Player</th><th>Reason</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody id="finesTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== BRANDING ========== -->
+      <section class="page-section" id="page-branding">
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Logo &amp; colors</div></div>
+            <div class="panel-body">
+              <div style="display:flex;gap:16px;align-items:center;margin-bottom:18px;">
+                <div class="logo-upload" onclick="alert('Logo upload — pick an image from your device.')">Upload<br>logo</div>
+                <div>
+                  <div class="hint">PNG or JPG, square, at least 200×200px.</div>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field"><label>Primary color</label><input type="color" id="colorPrimary" value="#C9971F" oninput="updateBrandPreview()"></div>
+                <div class="field"><label>Secondary color</label><input type="color" id="colorSecondary" value="#255BC7" oninput="updateBrandPreview()"></div>
+              </div>
+              <div class="color-preview">
+                <div class="pv-crest" id="pvCrest"></div>
+                <div>
+                  <div class="pv-name">Eldoret Estates League</div>
+                  <div class="pv-sub">eldoretestates.playtourn.ke</div>
+                </div>
+              </div>
+              <button class="btn btn-accent" style="margin-top:16px;" onclick="saveBranding()">Save branding</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Sponsor banner</div></div>
+            <div class="panel-body">
+              <div class="sponsor-drop" onclick="alert('Sponsor banner upload — pick an image from your device.')">
+                Click to upload a sponsor banner<br><span class="hint">Shown on the public fan site homepage</span>
+              </div>
+              <div class="field" style="margin-top:14px;"><label>Sponsor name</label><input type="text" value="Rift Valley Hardware & Supplies"></div>
+              <button class="btn btn-accent" onclick="alert('Sponsor banner saved.')">Save sponsor</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Custom domain<small>Elite plan only</small></div></div>
+          <div class="panel-body">
+            <div class="field">
+              <label>Your PlayTourn subdomain</label>
+              <div class="domain-row">
+                <span class="domain-prefix">https://</span>
+                <input type="text" value="eldoretestates" style="text-align:center;" disabled>
+                <span class="domain-suffix">.playtourn.ke</span>
+              </div>
+            </div>
+            <div class="field">
+              <label>Custom domain (optional)</label>
+              <input type="text" id="customDomain" placeholder="e.g. www.eldoretestatesleague.com">
+            </div>
+            <button class="btn btn-accent" onclick="alert('Domain settings saved — point your DNS CNAME to playtourn.ke to finish setup.')">Save domain</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== COMMS ========== -->
+      <section class="page-section" id="page-comms">
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Send push / SMS<small>Reaches coaches and fans instantly</small></div></div>
+          <div class="panel-body">
+            <div class="field">
+              <textarea id="commsText" placeholder="e.g. Reminder: Matchweek 9 fixtures kick off this Saturday at Kipkaren Pitch 1."></textarea>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Audience</label>
+                <select id="commsAudience"><option>All coaches</option><option>All fans</option><option>Coaches + fans</option><option>Specific team</option></select>
+              </div>
+              <div class="field"><label>Delivery</label>
+                <select id="commsDelivery"><option>Push + SMS</option><option>Push only</option><option>SMS only</option></select>
+              </div>
+            </div>
+            <button class="btn btn-accent" onclick="sendComms()">Send message</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Sent history</div></div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Message</th><th>Audience</th><th>Sent</th></tr></thead>
+              <tbody id="commsHistoryTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- Add Venue Modal -->
+<div class="modal-backdrop" id="venueModal">
+  <div class="modal">
+    <div class="modal-head"><h3>Add venue</h3><button class="modal-close" onclick="closeModal('venueModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Venue name</label><input type="text" id="vName" placeholder="e.g. Kipkaren Pitch 2"></div>
+      <div class="field"><label>Location</label><input type="text" id="vLoc" placeholder="e.g. Kipkaren, Uasin Gishu"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('venueModal')">Cancel</button>
+      <button class="btn btn-accent" onclick="addVenue()">Add venue</button>
+    </div>
+  </div>
+</div>
+
+<!-- Record Payment Modal -->
+<div class="modal-backdrop" id="paymentModal">
+  <div class="modal">
+    <div class="modal-head"><h3>Record payment</h3><button class="modal-close" onclick="closeModal('paymentModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Team</label>
+        <select id="pTeam"></select>
+      </div>
+      <div class="field"><label>Amount (KSh)</label><input type="number" id="pAmount" placeholder="2500"></div>
+      <div class="field"><label>M-Pesa code</label><input type="text" id="pCode" placeholder="e.g. SFG7K2M9QX"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('paymentModal')">Cancel</button>
+      <button class="btn btn-accent" onclick="recordPayment()">Record payment</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+/* =====================================================================
+   FIREBASE — replace with your PlayTourn project config (same project
+   the Super Admin console and fan site use). This file reads/writes:
+   teams, players, venues, fixtures, invoices, fines, announcements,
+   standings_cache — all scoped by league_id, plus league_users for auth.
+   ===================================================================== */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDmvhhmrqH3Cyj4sq9pVUea3uZzXEP58ew",
+  authDomain: "prolific-xi.firebaseapp.com",
+  projectId: "prolific-xi",
+  storageBucket: "prolific-xi.firebasestorage.app",
+  messagingSenderId: "401830608753",
+  appId: "1:401830608753:web:2864da194dbd312f1780d0"
+};
+
+let auth = null, db = null, firebaseReady = false;
+const isPlaceholderConfig = FIREBASE_CONFIG.apiKey === "YOUR_API_KEY" || !FIREBASE_CONFIG.apiKey;
+if(!isPlaceholderConfig){
+  try{
+    firebase.initializeApp(FIREBASE_CONFIG);
+    auth = firebase.auth();
+    db = firebase.firestore();
+    firebaseReady = true;
+  }catch(e){
+    console.warn('Firebase failed to initialize — Demo mode only.', e);
+  }
+}else{
+  console.warn('FIREBASE_CONFIG still has placeholder values — running in Demo mode. Fill in your real project keys to go live.');
+}
+
+let liveMode = false;      // true once signed in AND Firestore is configured
+let currentLeague = null;  // {id, name, subdomain, ...}
+let currentUser = null;
+
+/* ---------- League resolution (same pattern as the fan site) ---------- */
+function getRequestedSubdomain(){
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('league')) return params.get('league').toLowerCase().trim();
+  const host = window.location.hostname;
+  const parts = host.split('.');
+  if(host.endsWith('playtourn.ke') && parts.length > 2 && parts[0] !== 'admin' && parts[0] !== 'www'){
+    return parts[0].toLowerCase();
+  }
+  return null;
+}
+
+// Never let a stalled network call leave the UI stuck — race any Firestore
+// call against a timeout and fall back to demo mode if it doesn't answer.
+function withTimeout(promise, ms, label){
+  return Promise.race([
+    promise,
+    new Promise((_,reject)=> setTimeout(()=>reject(new Error(`${label} timed out after ${ms}ms`)), ms))
+  ]);
+}
+
+async function resolveLeague(){
+  const slug = getRequestedSubdomain() || 'eldoretestates'; // fallback for local preview
+  if(!firebaseReady){ return null; }
+  try{
+    const snap = await withTimeout(
+      db.collection('leagues').where('subdomain','==',slug).limit(1).get(),
+      8000, 'League lookup'
+    );
+    if(snap.empty) return null;
+    const doc = snap.docs[0];
+    return {id: doc.id, ...doc.data()};
+  }catch(e){
+    console.warn('Could not resolve league from Firestore, falling back to demo mode:', e);
+    window.__leagueError = (e && (e.code || '')) + ' ' + (e && e.message ? e.message : e);
+    firebaseReady = false; // stop trying to hit a Firestore project that isn't answering
+    return null;
+  }
+}
+
+/* ---------- Auth flow ---------- */
+async function initAuthGate(){
+  document.getElementById('authStatusView').textContent = 'Resolving your league…';
+  currentLeague = await resolveLeague();
+
+  if(!firebaseReady || !currentLeague){
+    // No Firebase config yet, or league not found — offer demo mode
+    document.getElementById('authStatusView').style.display = 'none';
+    document.getElementById('authFormView').style.display = 'block';
+    document.getElementById('authLeagueLabel').textContent = firebaseReady
+      ? "We couldn't find a league with subdomain '" + (getRequestedSubdomain() || 'eldoretestates') + "'. Check the leagues document field 'subdomain'. You can still preview the console in demo mode."
+      : (window.__leagueError
+          ? "Could not reach your league database. Error: " + window.__leagueError
+          : "Firebase isn't configured yet — sign-in is disabled. Preview the console in demo mode instead.");
+    return;
+  }
+
+  document.getElementById('authLeagueLabel').textContent = `Sign in to manage ${currentLeague.name}.`;
+  document.getElementById('authStatusView').style.display = 'none';
+  document.getElementById('authFormView').style.display = 'block';
+
+  auth.onAuthStateChanged(async user=>{
+    if(!user) return;
+    // Confirm this user has access to THIS league via league_users
+    try{
+      const snap = await db.collection('league_users')
+        .where('user_id','==',user.uid).where('league_id','==',currentLeague.id).limit(1).get();
+      if(snap.empty){
+        showAuthError(`Your account isn't linked to ${currentLeague.name}. Contact your Super Admin.`);
+        await auth.signOut();
+        return;
+      }
+      currentUser = user;
+      liveMode = true;
+      enterConsole();
+    }catch(e){
+      showAuthError('Could not verify league access: ' + e.message);
+    }
+  });
+}
+function showAuthError(msg){
+  const el = document.getElementById('authError');
+  el.textContent = msg; el.classList.add('show');
+}
+async function doSignIn(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  document.getElementById('authError').classList.remove('show');
+  if(!firebaseReady || !currentLeague){ showAuthError('Sign-in unavailable — use demo mode below.'); return; }
+  if(!email || !password){ showAuthError('Enter your email and password.'); return; }
+  try{
+    await auth.signInWithEmailAndPassword(email, password);
+    // onAuthStateChanged takes it from here
+  }catch(e){
+    showAuthError(e.message);
+  }
+}
+function doSignOut(){
+  if(auth && liveMode) auth.signOut();
+  location.reload();
+}
+function enterDemoMode(){
+  liveMode = false;
+  currentUser = {email:'demo@eldoretestates.ke'};
+  currentLeague = currentLeague || {id:'demo', name:'Eldoret Estates League', subdomain:'eldoretestates'};
+  enterConsole();
+}
+async function enterConsole(){
+  document.getElementById('authGate').classList.add('hide');
+  document.getElementById('appShell').style.display = 'flex';
+  document.getElementById('brandSub').textContent = `${currentLeague.name} · Admin`;
+  document.getElementById('sidebarWho').textContent = currentUser.email;
+  document.getElementById('avatarInitials').textContent = initialsOf(currentLeague.name);
+  const badge = document.getElementById('modeBadge');
+  if(liveMode){ badge.className = 'mode-badge live'; badge.innerHTML = '<span class="d"></span>Live · Firestore'; }
+  else{ badge.className = 'mode-badge demo'; badge.innerHTML = '<span class="d"></span>Demo data'; }
+  await loadAllData();
+  renderEverything();
+}
+function initialsOf(name){ return (name||'PT').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+
+/* ================= DEMO FALLBACK DATA ================= */
+const demoTeams = [
+  {name:"Kapseret FC", coach:"J. Mutai", players:18, feesStatus:"paid", owed:0},
+  {name:"Langas United", coach:"P. Kiplangat", players:20, feesStatus:"paid", owed:0},
+  {name:"Kipkaren Rangers", coach:"S. Chebet", players:17, feesStatus:"pending", owed:2500},
+  {name:"Elgon View FC", coach:"M. Barasa", players:19, feesStatus:"paid", owed:0},
+  {name:"Pioneer Boys", coach:"R. Kirui", players:16, feesStatus:"pending", owed:2500},
+  {name:"Race Course FC", coach:"T. Wafula", players:18, feesStatus:"pending", owed:2500},
+];
+const demoPendingTeams = [
+  {name:"Kericho Highlands FC", coach:"A. Langat", submitted:"09 Jul", players:15},
+  {name:"Thika Road Warriors", coach:"D. Otieno", submitted:"07 Jul", players:14},
+];
+const demoSuspensions = [
+  {player:"M. Barasa", team:"Elgon View FC", reason:"Second yellow card (accumulation)", left:1},
+  {player:"K. Rono", team:"Langas United", reason:"Red card — violent conduct", left:2},
+];
+const demoVenues = [
+  {name:"Kipkaren Pitch 1", loc:"Kipkaren, Uasin Gishu"},
+  {name:"Langas Community Ground", loc:"Langas, Eldoret"},
+  {name:"Elgon View School Field", loc:"Elgon View, Eldoret"},
+];
+const demoFixtures = [
+  {week:9, date:"Sat 12 Jul", time:"12:00 PM", home:"Kapseret FC", away:"Langas United", venue:"Kipkaren Pitch 1", hs:null, as:null, status:"upcoming"},
+  {week:9, date:"Sat 12 Jul", time:"2:30 PM", home:"Elgon View FC", away:"Kipkaren Rangers", venue:"Elgon View School Field", hs:null, as:null, status:"upcoming"},
+  {week:9, date:"Sun 13 Jul", time:"11:00 AM", home:"Pioneer Boys", away:"Race Course FC", venue:"Langas Community Ground", hs:null, as:null, status:"upcoming"},
+  {week:8, date:"Sat 05 Jul", time:"12:00 PM", home:"Kapseret FC", away:"Elgon View FC", venue:"Kipkaren Pitch 1", hs:3, as:1, status:"done"},
+  {week:8, date:"Sat 05 Jul", time:"2:30 PM", home:"Langas United", away:"Pioneer Boys", venue:"Langas Community Ground", hs:2, as:2, status:"done"},
+  {week:8, date:"Sun 06 Jul", time:"11:00 AM", home:"Kipkaren Rangers", away:"Race Course FC", venue:"Kipkaren Pitch 1", hs:1, as:0, status:"done"},
+  {week:7, date:"Sat 28 Jun", time:"12:00 PM", home:"Race Course FC", away:"Kapseret FC", venue:"Kipkaren Pitch 1", hs:0, as:2, status:"done"},
+  {week:7, date:"Sat 28 Jun", time:"2:30 PM", home:"Pioneer Boys", away:"Kipkaren Rangers", venue:"Langas Community Ground", hs:1, as:1, status:"done"},
+];
+const demoAlerts = [
+  {text:"<b>Kipkaren Rangers</b> fee payment is 3 days overdue", time:"2h ago", type:"warn"},
+  {text:"<b>Kericho Highlands FC</b> submitted a new team application", time:"4h ago", type:"info"},
+  {text:"<b>M. Barasa</b> (Elgon View FC) suspended after 2nd yellow card", time:"1d ago", type:"bad"},
+  {text:"Matchweek 8 results posted — standings updated", time:"1d ago", type:"ok"},
+];
+const demoFees = [
+  {team:"Kapseret FC", amount:2500, status:"paid", code:"SFG7K2M9QX"},
+  {team:"Langas United", amount:2500, status:"paid", code:"SFG7K1L4RT"},
+  {team:"Kipkaren Rangers", amount:2500, status:"pending", code:"—"},
+  {team:"Elgon View FC", amount:2500, status:"paid", code:"SFG6Z9P2WE"},
+  {team:"Pioneer Boys", amount:2500, status:"pending", code:"—"},
+  {team:"Race Course FC", amount:2500, status:"pending", code:"—"},
+];
+const demoFines = [
+  {who:"Elgon View FC — M. Barasa", reason:"Red card fine", amount:500, status:"pending"},
+  {who:"Race Course FC", reason:"Late kickoff (matchweek 7)", amount:500, status:"pending"},
+];
+const demoCommsHistory = [
+  {msg:"Reminder: fees for round 2 are due by Aug 1.", audience:"All coaches", sent:"3 days ago"},
+  {msg:"Matchweek 8 fixtures kick off this Saturday.", audience:"Coaches + fans", sent:"1 week ago"},
+];
+
+/* ================= LIVE STATE (populated by loadAllData) ================= */
+let teams = [], pendingTeams = [], suspensions = [], venues = [], fixtures = [],
+    alerts = [], fees = [], fines = [], commsHistory = [];
+let matchEvents = {}; // keyed by fixture id/index, holds {home, away, events:[]}
+
+/* ---------- Firestore <-> local doc-id bookkeeping ---------- */
+// Each array item keeps `_id` (Firestore doc id) when in live mode, so writes
+// know which document to update. Demo-mode items simply omit `_id`.
+
+async function loadAllData(){
+  if(!liveMode){
+    teams = structuredClone(demoTeams);
+    pendingTeams = structuredClone(demoPendingTeams);
+    suspensions = structuredClone(demoSuspensions);
+    venues = structuredClone(demoVenues);
+    fixtures = structuredClone(demoFixtures);
+    alerts = structuredClone(demoAlerts);
+    fees = structuredClone(demoFees);
+    fines = structuredClone(demoFines);
+    commsHistory = structuredClone(demoCommsHistory);
+    return;
+  }
+  const lid = currentLeague.id;
+  try{
+    const [teamsSnap, venuesSnap, fixturesSnap, invoicesSnap, finesSnap, annSnap] = await Promise.all([
+      db.collection('teams').where('league_id','==',lid).get(),
+      db.collection('venues').where('league_id','==',lid).get(),
+      db.collection('fixtures').where('league_id','==',lid).get(),
+      db.collection('invoices').where('league_id','==',lid).get(),
+      db.collection('fines').where('league_id','==',lid).get(),
+      db.collection('announcements').where('league_id','==',lid).orderBy('sent_at','desc').limit(20).get(),
+    ]);
+
+    const allTeams = teamsSnap.docs.map(d=>({_id:d.id, ...d.data()}));
+    teams = allTeams.filter(t=>t.status==='approved');
+    pendingTeams = allTeams.filter(t=>t.status==='pending');
+
+    venues = venuesSnap.docs.map(d=>({_id:d.id, ...d.data()}));
+    fixtures = fixturesSnap.docs.map(d=>({_id:d.id, ...d.data()}));
+    fees = invoicesSnap.docs.map(d=>({_id:d.id, ...d.data()}));
+    fines = finesSnap.docs.map(d=>({_id:d.id, ...d.data()}));
+    commsHistory = annSnap.docs.map(d=>({_id:d.id, ...d.data()}));
+
+    // Suspensions + alerts don't have dedicated collections in the base
+    // schema yet — read them from a lightweight `league_feed` collection,
+    // falling back to empty if it doesn't exist.
+    try{
+      const feedSnap = await db.collection('league_feed').where('league_id','==',lid).orderBy('created_at','desc').limit(20).get();
+      const feed = feedSnap.docs.map(d=>d.data());
+      alerts = feed.filter(f=>f.kind==='alert');
+      suspensions = feed.filter(f=>f.kind==='suspension');
+    }catch(e){
+      alerts = []; suspensions = [];
+    }
+  }catch(e){
+    console.warn('Firestore read failed, falling back to demo data for this session:', e);
+    liveMode = false;
+    document.getElementById('modeBadge').className = 'mode-badge demo';
+    document.getElementById('modeBadge').innerHTML = '<span class="d"></span>Demo data (read failed)';
+    await loadAllData();
+  }
+}
+
+function renderEverything(){
+  renderTicker();
+  renderHome();
+  renderVenues();
+  renderTeamsPage();
+  renderFixturesPage();
+  populateMatchSelect();
+  renderStandings();
+  renderFinance();
+  renderCommsHistory();
+}
+
+/* ================= NAV ================= */
+function goPage(name){
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active', el.dataset.page===name));
+  document.querySelectorAll('.page-section').forEach(el=>el.classList.toggle('active', el.id==='page-'+name));
+  const titles = {
+    home:['Overview','Home'], setup:['Configuration','Setup'],
+    teams:['Roster','Teams & Players'], fixtures:['Schedule','Fixtures'],
+    match:['Live control','Match Centre'], table:['Standings','Table'],
+    finance:['Money','Finance'], branding:['Identity','Branding'], comms:['Broadcast','Comms'],
+  };
+  document.getElementById('pageEyebrow').textContent = titles[name][0];
+  document.getElementById('pageTitle').textContent = titles[name][1];
+  document.getElementById('sidebar').classList.remove('open');
+}
+document.getElementById('mainnav').addEventListener('click', e=>{
+  const item = e.target.closest('.nav-item');
+  if(item) goPage(item.dataset.page);
+});
+
+/* ================= HOME ================= */
+function renderTicker(){
+  const dotClass = t => t==='bad'?'bad':t==='warn'?'warn':'';
+  const items = alerts.map(a=>`<div class="ticker-item"><span class="tdot ${dotClass(a.type)}"></span>${a.text.replace(/<[^>]+>/g,'')}</div>`).join('');
+  document.getElementById('tickerTrack').innerHTML = items + items;
+}
+function statusBadge(status){
+  const map = {done:['FT','badge-active'], live:['LIVE','badge-failed'], upcoming:['Upcoming','badge-pending'],
+    paid:['Paid','badge-paid'], pending:['Pending','badge-pending'], approved:['Approved','badge-approved'], suspended:['Suspended','badge-suspended']};
+  const [label,cls] = map[status] || [status,''];
+  return `<span class="badge ${cls}"><span class="d"></span>${label}</span>`;
+}
+function renderHome(){
+  const upcoming = fixtures.filter(f=>f.status==='upcoming').slice(0,3);
+  document.getElementById('homeFixturesTable').innerHTML = upcoming.map(f=>`
+    <tr><td class="mono">${f.date}</td><td class="strong">${f.home} vs ${f.away}</td><td>${f.venue}</td><td>${statusBadge(f.status)}</td></tr>
+  `).join('');
+
+  const unpaid = teams.filter(t=>t.feesStatus==='pending');
+  document.getElementById('homeUnpaidTable').innerHTML = unpaid.map(t=>`
+    <tr><td class="strong">${t.name}</td><td class="mono">KSh ${t.owed.toLocaleString()}</td></tr>
+  `).join('');
+
+  const dotClass = t => t==='bad'?'bad':t==='warn'?'warn':t==='ok'?'ok':'';
+  document.getElementById('alertFeed').innerHTML = alerts.map(a=>`
+    <div class="alert-row"><div class="alert-dot ${dotClass(a.type)}"></div>
+      <div><div class="alert-text">${a.text}</div><div class="alert-time">${a.time}</div></div>
+    </div>`).join('');
+}
+
+/* ================= SETUP ================= */
+async function saveSeason(){
+  const data = {
+    season_name: document.getElementById('seasonName').value,
+    season_start: document.getElementById('seasonStart').value,
+    season_end: document.getElementById('seasonEnd').value,
+    season_status: document.getElementById('seasonStatus').value,
+  };
+  if(liveMode){
+    try{ await db.collection('leagues').doc(currentLeague.id).set(data,{merge:true}); }
+    catch(e){ alert('Could not save season: '+e.message); return; }
+  }
+  alert('Season details saved.');
+}
+async function savePoints(){
+  const data = {
+    pts_win: Number(document.getElementById('ptsWin').value),
+    pts_draw: Number(document.getElementById('ptsDraw').value),
+    pts_loss: Number(document.getElementById('ptsLoss').value),
+    tiebreaker: document.getElementById('tiebreak').value,
+  };
+  if(liveMode){
+    try{ await db.collection('leagues').doc(currentLeague.id).set(data,{merge:true}); }
+    catch(e){ alert('Could not save points system: '+e.message); return; }
+  }
+  alert('Points system saved — the table will recalculate automatically.');
+}
+async function saveRules(){
+  const rules_text = document.getElementById('rulesText').value;
+  if(liveMode){
+    try{ await db.collection('leagues').doc(currentLeague.id).set({rules_text},{merge:true}); }
+    catch(e){ alert('Could not save rules: '+e.message); return; }
+  }
+  alert('Rules saved and published to the fan site.');
+}
+function renderVenues(){
+  document.getElementById('venueGrid').innerHTML = venues.map(v=>`
+    <div class="venue-card"><div class="vname">${v.name}</div><div class="vloc">${v.loc}</div></div>
+  `).join('');
+}
+async function addVenue(){
+  const name = document.getElementById('vName').value.trim();
+  const loc = document.getElementById('vLoc').value.trim();
+  if(!name || !loc){ alert('Give the venue a name and location.'); return; }
+  const venue = {name, loc};
+  if(liveMode){
+    try{
+      const ref = await db.collection('venues').add({...venue, league_id: currentLeague.id});
+      venue._id = ref.id;
+    }catch(e){ alert('Could not save venue: '+e.message); return; }
+  }
+  venues.push(venue);
+  document.getElementById('vName').value=''; document.getElementById('vLoc').value='';
+  closeModal('venueModal');
+  renderVenues();
+}
+
+/* ================= TEAMS & PLAYERS ================= */
+function renderTeamsPage(){
+  document.getElementById('navPendingCount').textContent = pendingTeams.length;
+  document.getElementById('teamCountSub').textContent = teams.length + ' teams';
+
+  document.getElementById('pendingTeamsTable').innerHTML = pendingTeams.map((t,i)=>`
+    <tr>
+      <td class="strong">${t.name}</td><td>${t.coach}</td><td class="mono">${t.submitted}</td><td>${t.players}</td>
+      <td><div class="row-actions">
+        <button class="btn btn-success btn-sm" onclick="approveTeam(${i})">Approve</button>
+        <button class="btn btn-danger btn-sm" onclick="rejectTeam(${i})">Reject</button>
+      </div></td>
+    </tr>`).join('') || `<tr><td colspan="5" class="empty-state">No pending applications.</td></tr>`;
+
+  document.getElementById('approvedTeamsTable').innerHTML = teams.map(t=>`
+    <tr>
+      <td class="strong">${t.name}</td><td>${t.coach}</td><td>${t.players}</td>
+      <td>${statusBadge(t.feesStatus)}</td>
+      <td><div class="row-actions"><button class="btn btn-ghost btn-sm" onclick="alert('Squad list for ${t.name} — coming soon.')">View squad</button></div></td>
+    </tr>`).join('');
+
+  document.getElementById('suspensionsTable').innerHTML = suspensions.map(s=>`
+    <tr><td class="strong">${s.player}</td><td>${s.team}</td><td>${s.reason}</td><td class="mono">${s.left}</td></tr>
+  `).join('') || `<tr><td colspan="4" class="empty-state">No active suspensions.</td></tr>`;
+}
+async function approveTeam(i){
+  const t = pendingTeams[i];
+  if(liveMode && t._id){
+    try{ await db.collection('teams').doc(t._id).set({status:'approved', feesStatus:'pending', owed:2500},{merge:true}); }
+    catch(e){ alert('Could not approve team: '+e.message); return; }
+  }
+  teams.push({...t, feesStatus:"pending", owed:2500});
+  pendingTeams.splice(i,1);
+  renderTeamsPage();
+}
+async function rejectTeam(i){
+  const t = pendingTeams[i];
+  if(!confirm(`Reject ${t.name}'s application?`)) return;
+  if(liveMode && t._id){
+    try{ await db.collection('teams').doc(t._id).delete(); }
+    catch(e){ alert('Could not reject team: '+e.message); return; }
+  }
+  pendingTeams.splice(i,1);
+  renderTeamsPage();
+}
+
+/* ================= FIXTURES ================= */
+function fixtureCard(f, i){
+  const score = f.status==='done' ? `${f.hs} – ${f.as}` : f.time;
+  return `
+    <div class="fx-card">
+      <div class="fdate"><b>${f.date.split(' ')[0]}</b>${f.date.split(' ').slice(1).join(' ')}</div>
+      <div class="fteams">${f.home} <span>vs</span> ${f.away}<br><span>${f.venue}</span></div>
+      <div class="mono">${score}</div>
+      <div class="row-actions">
+        ${statusBadge(f.status)}
+        <button class="btn btn-ghost btn-sm" onclick="rescheduleFixture(${i})">Reschedule</button>
+      </div>
+    </div>`;
+}
+function renderFixturesPage(){
+  const weeks = [...new Set(fixtures.map(f=>f.week))].sort((a,b)=>b-a);
+  document.getElementById('fixturesByWeek').innerHTML = weeks.map(w=>{
+    const rows = fixtures.map((f,i)=>({f,i})).filter(x=>x.f.week===w).map(x=>fixtureCard(x.f,x.i)).join('');
+    return `<div class="week-group"><div class="week-group-head"><h4>Matchweek ${w}</h4></div>${rows}</div>`;
+  }).join('');
+}
+async function rescheduleFixture(i){
+  const f = fixtures[i];
+  const newDate = prompt(`New date for ${f.home} vs ${f.away} (currently ${f.date}):`, f.date);
+  if(!newDate) return;
+  const newTime = prompt(`New kickoff time (currently ${f.time}):`, f.time);
+  if(newTime===null) return;
+  if(liveMode && f._id){
+    try{ await db.collection('fixtures').doc(f._id).set({date:newDate, time:newTime},{merge:true}); }
+    catch(e){ alert('Could not reschedule: '+e.message); return; }
+  }
+  f.date = newDate; f.time = newTime;
+  renderFixturesPage();
+  renderHome();
+  populateMatchSelect();
+}
+async function autoGenerateFixtures(){
+  if(!confirm('Auto-generate a new round of fixtures from the current team list?')) return;
+  const names = teams.map(t=>t.name);
+  const nextWeek = fixtures.length ? Math.max(...fixtures.map(f=>f.week)) + 1 : 1;
+  const shuffled = [...names].sort(()=>Math.random()-0.5);
+  const newFixtures = [];
+  for(let i=0;i<shuffled.length-1;i+=2){
+    newFixtures.push({
+      week:nextWeek, date:"TBC", time:"TBC",
+      home:shuffled[i], away:shuffled[i+1],
+      venue: venues[i % venues.length]?.name || "TBC",
+      hs:null, as:null, status:"upcoming"
+    });
+  }
+  if(liveMode){
+    try{
+      const batch = db.batch();
+      newFixtures.forEach(f=>{
+        const ref = db.collection('fixtures').doc();
+        batch.set(ref, {...f, league_id: currentLeague.id});
+        f._id = ref.id;
+      });
+      await batch.commit();
+    }catch(e){ alert('Could not save generated fixtures: '+e.message); return; }
+  }
+  fixtures = [...newFixtures, ...fixtures];
+  renderFixturesPage();
+  renderHome();
+  populateMatchSelect();
+  alert(`Matchweek ${nextWeek} generated with ${newFixtures.length} fixtures. Set real dates via Reschedule.`);
+}
+
+/* ================= MATCH CENTRE ================= */
+function populateMatchSelect(){
+  const sel = document.getElementById('matchFixtureSelect');
+  sel.innerHTML = fixtures.map((f,i)=>`<option value="${i}">${f.home} vs ${f.away} — Wk ${f.week} (${f.date})</option>`).join('');
+  loadMatch();
+}
+function loadMatch(){
+  const i = Number(document.getElementById('matchFixtureSelect').value || 0);
+  const f = fixtures[i];
+  if(!f) return;
+  if(!matchEvents[i]) matchEvents[i] = {home: f.hs ?? 0, away: f.as ?? 0, events:[]};
+  document.getElementById('mHomeName').textContent = f.home;
+  document.getElementById('mAwayName').textContent = f.away;
+  document.getElementById('mHomeScore').textContent = matchEvents[i].home;
+  document.getElementById('mAwayScore').textContent = matchEvents[i].away;
+  renderMatchEvents(i);
+}
+function currentFixtureIndex(){ return Number(document.getElementById('matchFixtureSelect').value || 0); }
+function adjustScore(side, delta){
+  const i = currentFixtureIndex();
+  const m = matchEvents[i];
+  m[side] = Math.max(0, m[side] + delta);
+  document.getElementById(side==='home' ? 'mHomeScore' : 'mAwayScore').textContent = m[side];
+}
+async function addMatchEvent(){
+  const i = currentFixtureIndex();
+  const min = document.getElementById('evMinute').value || '0';
+  const type = document.getElementById('evType').value;
+  const desc = document.getElementById('evDesc').value.trim();
+  if(!desc){ alert('Add a short description of the event.'); return; }
+  const f = fixtures[i];
+  if(liveMode && f._id){
+    try{
+      await db.collection('match_events').add({
+        fixture_id: f._id, league_id: currentLeague.id, minute: Number(min)||0, type, desc, created_at: new Date().toISOString()
+      });
+    }catch(e){ alert('Could not save event: '+e.message); return; }
+  }
+  matchEvents[i].events.unshift({min, type, desc});
+  document.getElementById('evMinute').value=''; document.getElementById('evDesc').value='';
+  renderMatchEvents(i);
+}
+function renderMatchEvents(i){
+  const events = matchEvents[i]?.events || [];
+  document.getElementById('matchEventLog').innerHTML = events.map(e=>`
+    <div class="event-row"><div class="emin">${e.min}'</div><div>${e.type}</div><div class="etxt">${e.desc}</div></div>
+  `).join('') || `<div class="empty-state">No events logged yet.</div>`;
+}
+async function postResult(){
+  const i = currentFixtureIndex();
+  const m = matchEvents[i];
+  const f = fixtures[i];
+  if(!confirm(`Post final result: ${f.home} ${m.home} – ${m.away} ${f.away}?`)) return;
+  if(liveMode && f._id){
+    try{ await db.collection('fixtures').doc(f._id).set({hs:m.home, as:m.away, status:'done'},{merge:true}); }
+    catch(e){ alert('Could not post result: '+e.message); return; }
+  }
+  f.hs = m.home; f.as = m.away; f.status = 'done';
+  renderFixturesPage();
+  renderHome();
+  renderStandings();
+  populateMatchSelect();
+  if(liveMode){
+    try{ await writeStandingsCache(); }catch(e){ console.warn('standings_cache write failed:', e); }
+  }
+  alert('Result posted. Standings and fan site table updated.');
+}
+async function writeStandingsCache(){
+  const rows = computeStandings();
+  const batch = db.batch();
+  rows.forEach(r=>{
+    const ref = db.collection('standings_cache').doc(`${currentLeague.id}_${r.team.replace(/\s+/g,'_')}`);
+    batch.set(ref, {league_id: currentLeague.id, ...r});
+  });
+  await batch.commit();
+}
+
+/* ================= TABLE (auto-computed) ================= */
+function computeStandings(){
+  const table = {};
+  teams.forEach(t=> table[t.name] = {team:t.name, p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0});
+  fixtures.filter(f=>f.status==='done').forEach(f=>{
+    if(!table[f.home] || !table[f.away]) return;
+    const h = table[f.home], a = table[f.away];
+    h.p++; a.p++; h.gf+=f.hs; h.ga+=f.as; a.gf+=f.as; a.ga+=f.hs;
+    if(f.hs > f.as){ h.w++; a.l++; h.pts+=3; }
+    else if(f.hs < f.as){ a.w++; h.l++; a.pts+=3; }
+    else { h.d++; a.d++; h.pts+=1; a.pts+=1; }
+  });
+  return Object.values(table).sort((x,y)=> y.pts-x.pts || (y.gf-y.ga)-(x.gf-x.ga) || y.gf-x.gf);
+}
+function renderStandings(){
+  const rows = computeStandings();
+  const head = `<thead><tr><th>#</th><th>Team</th><th class="num">P</th><th class="num">W</th><th class="num">D</th><th class="num">L</th><th class="num">GF</th><th class="num">GA</th><th class="num">GD</th><th class="num">Pts</th></tr></thead>`;
+  const body = rows.map((r,i)=>`
+    <tr><td class="mono">${i+1}</td><td class="strong">${r.team}</td><td class="num">${r.p}</td><td class="num">${r.w}</td>
+    <td class="num">${r.d}</td><td class="num">${r.l}</td><td class="num">${r.gf}</td><td class="num">${r.ga}</td>
+    <td class="num">${r.gf-r.ga>0?'+':''}${r.gf-r.ga}</td><td class="num strong">${r.pts}</td></tr>`).join('');
+  document.getElementById('standingsTable').innerHTML = head + '<tbody>' + body + '</tbody>';
+}
+
+/* ================= FINANCE ================= */
+function renderFinance(){
+  document.getElementById('navUnpaidCount').textContent = fees.filter(f=>f.status==='pending').length;
+  document.getElementById('feesTable').innerHTML = fees.map(f=>`
+    <tr><td class="strong">${f.team}</td><td class="mono">KSh ${f.amount.toLocaleString()}</td><td>${statusBadge(f.status)}</td><td class="mono">${f.code}</td></tr>
+  `).join('');
+  document.getElementById('finesTable').innerHTML = fines.map(f=>`
+    <tr><td class="strong">${f.who}</td><td>${f.reason}</td><td class="mono">KSh ${f.amount.toLocaleString()}</td><td>${statusBadge(f.status)}</td></tr>
+  `).join('');
+  const sel = document.getElementById('pTeam');
+  if(sel) sel.innerHTML = teams.map(t=>`<option>${t.name}</option>`).join('');
+}
+async function recordPayment(){
+  const team = document.getElementById('pTeam').value;
+  const amount = Number(document.getElementById('pAmount').value || 0);
+  const code = document.getElementById('pCode').value.trim() || '—';
+  if(!amount){ alert('Enter an amount.'); return; }
+  const fee = fees.find(f=>f.team===team);
+  const t = teams.find(t=>t.name===team);
+  if(liveMode){
+    try{
+      if(fee && fee._id){
+        await db.collection('invoices').doc(fee._id).set({status:'paid', mpesa_code:code, amount},{merge:true});
+      }else{
+        await db.collection('invoices').add({league_id: currentLeague.id, team, amount, status:'paid', mpesa_code:code});
+      }
+      if(t && t._id) await db.collection('teams').doc(t._id).set({feesStatus:'paid', owed:0},{merge:true});
+    }catch(e){ alert('Could not record payment: '+e.message); return; }
+  }
+  if(fee){ fee.status='paid'; fee.code=code; fee.amount=amount; }
+  if(t){ t.feesStatus='paid'; t.owed=0; }
+  document.getElementById('pAmount').value=''; document.getElementById('pCode').value='';
+  closeModal('paymentModal');
+  renderFinance();
+  renderTeamsPage();
+  renderHome();
+}
+
+/* ================= BRANDING ================= */
+function updateBrandPreview(){
+  const p = document.getElementById('colorPrimary').value;
+  const s = document.getElementById('colorSecondary').value;
+  document.getElementById('pvCrest').style.background = `linear-gradient(135deg, ${p}, ${s})`;
+}
+async function saveBranding(){
+  const data = {
+    color_primary: document.getElementById('colorPrimary').value,
+    color_secondary: document.getElementById('colorSecondary').value,
+  };
+  if(liveMode){
+    try{ await db.collection('leagues').doc(currentLeague.id).set(data,{merge:true}); }
+    catch(e){ alert('Could not save branding: '+e.message); return; }
+  }
+  alert('Branding saved.');
+}
+
+/* ================= COMMS ================= */
+async function sendComms(){
+  const text = document.getElementById('commsText').value.trim();
+  if(!text){ alert('Write a message before sending.'); return; }
+  const audience = document.getElementById('commsAudience').value;
+  const entry = {msg:text, audience, sent:"Just now"};
+  if(liveMode){
+    try{
+      await db.collection('announcements').add({
+        league_id: currentLeague.id, msg:text, audience, sent_at: new Date().toISOString()
+      });
+    }catch(e){ alert('Could not send message: '+e.message); return; }
+  }
+  commsHistory.unshift(entry);
+  document.getElementById('commsText').value='';
+  renderCommsHistory();
+  alert(`Message sent to ${audience}.`);
+}
+function renderCommsHistory(){
+  document.getElementById('commsHistoryTable').innerHTML = commsHistory.map(c=>`
+    <tr><td>${c.msg}</td><td>${c.audience}</td><td class="mono">${c.sent}</td></tr>
+  `).join('');
+}
+
+/* ================= MODAL ================= */
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-backdrop').forEach(m=>{
+  m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('show'); });
+});
+
+/* ================= INIT ================= */
+initAuthGate();
+</script>
+
+</body>
+</html>
