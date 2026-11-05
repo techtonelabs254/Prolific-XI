@@ -1,0 +1,2680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Eldoret Estates League — Admin</title>
+<meta name="theme-color" content="#0b0d10">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta property="og:type" content="website">
+<meta property="og:title" content="League Admin">
+<meta property="og:description" content="Football league software for Kenyan leagues.">
+<meta property="og:image" content="og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Trionda palette — white ball base, red/Canada, green/Mexico, blue/USA, gold/trophy trim */
+    --bg:#F7F6F1;
+    --surface:#FFFFFF;
+    --surface-2:#F1EFE8;
+    --surface-3:#E6E3D9;
+    --border:#DEDBCE;
+    --text:#15171B;
+    --text-dim:#565A62;
+    --text-faint:#93979F;
+    --accent:#C9971F;
+    --accent-dim:#F8EDD3;
+    --red:#D93C34;
+    --red-dim:#FBE5E2;
+    --green:#238C46;
+    --green-dim:#E3F3E7;
+    --blue:#255BC7;
+    --blue-dim:#E7EDFB;
+    --yellow:#C9971F;
+    --yellow-dim:#F8EDD3;
+    --radius:10px;
+    --font-display:'Oswald',sans-serif;
+    --font-body:'Inter',sans-serif;
+    --font-mono:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-text-size-adjust:100%;}
+  html,body{overflow-x:hidden;max-width:100%;}
+  body{
+    background:var(--bg);color:var(--text);font-family:var(--font-body);
+    font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+    background-image:linear-gradient(var(--border) 1px, transparent 1px);
+    background-size:100% 64px;background-attachment:fixed;background-position:0 -1px;
+  }
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;cursor:pointer;}
+  ::selection{background:var(--accent);color:#1A1200;}
+
+  /* ---------- Layout ---------- */
+  .shell{display:flex;min-height:100vh;}
+  .sidebar{
+    width:232px;flex-shrink:0;background:var(--surface);
+    border-right:1px solid var(--border);
+    display:flex;flex-direction:column;
+    position:fixed;top:0;bottom:0;left:0;z-index:40;
+    transition:transform .25s ease;
+  }
+  .brand{padding:22px 20px 18px;border-bottom:1px solid var(--border);}
+  .brand-mark{font-family:var(--font-display);font-weight:700;font-size:19px;letter-spacing:.02em;display:flex;align-items:baseline;gap:7px;}
+  .brand-mark span.dot{color:var(--accent);}
+  .brand-sub{margin-top:3px;font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;color:var(--text-faint);text-transform:uppercase;}
+  nav.mainnav{padding:14px 12px;flex:1;overflow-y:auto;}
+  .nav-item{
+    display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:8px;
+    color:var(--text-dim);font-size:13.5px;font-weight:500;border-left:2px solid transparent;
+    cursor:pointer;margin-bottom:2px;transition:background .15s, color .15s;
+  }
+  .nav-item:hover{background:var(--surface-2);color:var(--text);}
+  .nav-item.active{color:var(--text);background:var(--surface-2);border-left:2px solid var(--accent);}
+  .nav-item .ic{width:16px;text-align:center;opacity:.85;font-size:14px;}
+  .nav-num{font-family:var(--font-mono);font-size:10px;color:var(--text-faint);margin-left:auto;}
+  .nav-num.warn{color:var(--yellow);}
+  .sidebar-foot{padding:16px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--text-faint);}
+  .sidebar-foot .who{color:var(--text-dim);font-weight:600;}
+
+  .main{margin-left:232px;flex:1;min-width:0;}
+  .topbar{
+    height:60px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;padding:0 26px;
+    position:sticky;top:0;background:rgba(255,255,255,.85);backdrop-filter:blur(8px);z-index:30;
+  }
+  .topbar-left{display:flex;align-items:center;gap:14px;}
+  .menu-btn{display:none;background:none;border:none;color:var(--text);font-size:18px;}
+  .page-title{font-family:var(--font-display);font-size:18px;font-weight:600;letter-spacing:.01em;}
+  .page-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;color:var(--text-faint);text-transform:uppercase;}
+  .topbar-right{display:flex;align-items:center;gap:16px;}
+  .search-box{background:var(--surface-2);border:1px solid var(--border);border-radius:7px;padding:7px 12px;font-size:12.5px;color:var(--text-dim);width:200px;}
+  .avatar{
+    width:32px;height:32px;border-radius:7px;
+    background:linear-gradient(135deg,var(--accent),#c97a12);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--font-display);font-weight:600;font-size:13px;color:#1A1200;
+  }
+
+  .page{padding:26px 26px 60px;max-width:1280px;}
+  .page-section{display:none;}
+  .page-section.active{display:block;animation:fadein .3s ease;}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ---------- Ticker ---------- */
+  .ticker-wrap{border:1px solid var(--border);background:var(--surface);border-radius:var(--radius);overflow:hidden;margin-bottom:22px;position:relative;}
+  .ticker-label{position:absolute;left:0;top:0;bottom:0;background:var(--accent);color:#1A1200;font-family:var(--font-mono);font-size:10px;font-weight:600;letter-spacing:.1em;display:flex;align-items:center;padding:0 12px;z-index:2;text-transform:uppercase;}
+  .ticker-track{display:flex;white-space:nowrap;padding:11px 0 11px 108px;animation:scroll-ticker 30s linear infinite;font-family:var(--font-mono);font-size:12px;}
+  .ticker-wrap:hover .ticker-track{animation-play-state:paused;}
+  .ticker-item{padding:0 26px;color:var(--text-dim);display:flex;align-items:center;gap:8px;}
+  .ticker-item b{color:var(--text);font-weight:600;}
+  .tdot{width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0;}
+  .tdot.warn{background:var(--yellow);}
+  .tdot.bad{background:var(--red);}
+  @keyframes scroll-ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* ---------- Stat cards ---------- */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 18px 16px;position:relative;overflow:hidden;}
+  .stat-card::after{content:'';position:absolute;bottom:0;left:18px;right:18px;height:2px;background:linear-gradient(90deg,var(--accent),transparent);}
+  .stat-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);margin-bottom:10px;}
+  .stat-value{font-family:var(--font-mono);font-weight:600;font-size:28px;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+  .stat-value .unit{font-size:14px;color:var(--text-dim);font-weight:500;margin-left:2px;}
+  .stat-delta{margin-top:8px;font-size:11.5px;font-weight:600;display:flex;align-items:center;gap:5px;}
+  .stat-delta.up{color:var(--green);}
+  .stat-delta.down{color:var(--red);}
+  .stat-delta.warn{color:var(--yellow);}
+
+  /* ---------- Panels ---------- */
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px;}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap;}
+  .panel-title{font-family:var(--font-display);font-size:15px;font-weight:600;letter-spacing:.01em;}
+  .panel-title small{display:block;font-family:var(--font-body);font-size:11.5px;color:var(--text-faint);font-weight:400;margin-top:2px;}
+  .panel-body{padding:20px;}
+  .grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+
+  /* ---------- Buttons ---------- */
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:7px;font-size:12.5px;font-weight:600;border:1px solid var(--border);background:var(--surface-2);color:var(--text);transition:background .15s,border-color .15s;}
+  .btn:hover{background:var(--surface-3);}
+  .btn-accent{background:var(--accent);border-color:var(--accent);color:#1A1200;}
+  .btn-accent:hover{background:#ffb43e;}
+  .btn-danger{background:var(--red-dim);border-color:#F2C1BB;color:var(--red);}
+  .btn-danger:hover{background:#F7D3CC;}
+  .btn-success{background:var(--green-dim);border-color:#B9E0C6;color:var(--green);}
+  .btn-success:hover{background:#D2EDDA;}
+  .btn-ghost{background:transparent;border-color:transparent;color:var(--text-dim);}
+  .btn-ghost:hover{background:var(--surface-2);color:var(--text);}
+  .btn-sm{padding:5px 10px;font-size:11.5px;}
+  .btn-block{width:100%;justify-content:center;}
+
+  /* ---------- Tables ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  thead th{text-align:left;font-family:var(--font-mono);font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--text-faint);padding:0 20px 10px;font-weight:500;}
+  thead th.num{text-align:center;}
+  tbody tr{border-top:1px solid var(--border);}
+  tbody tr:hover{background:var(--surface-2);}
+  tbody td{padding:13px 20px;color:var(--text-dim);vertical-align:middle;}
+  tbody td.num{text-align:center;font-family:var(--font-mono);}
+  tbody td.strong{color:var(--text);font-weight:600;}
+  tbody td.mono{font-family:var(--font-mono);font-size:12px;}
+  .row-actions{display:flex;gap:6px;justify-content:flex-end;}
+  .table-scroll{overflow-x:auto;}
+
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;font-family:var(--font-mono);}
+  .badge .d{width:5px;height:5px;border-radius:50%;}
+  .badge-active,.badge-paid,.badge-approved{background:var(--green-dim);color:var(--green);}
+  .badge-active .d,.badge-paid .d,.badge-approved .d{background:var(--green);}
+  .badge-pending,.badge-trial{background:var(--yellow-dim);color:var(--yellow);}
+  .badge-pending .d,.badge-trial .d{background:var(--yellow);}
+  .badge-banned,.badge-failed,.badge-suspended,.badge-overdue{background:var(--red-dim);color:var(--red);}
+  .badge-banned .d,.badge-failed .d,.badge-suspended .d,.badge-overdue .d{background:var(--red);}
+  .badge-info{background:var(--blue-dim);color:var(--blue);}
+  .badge-info .d{background:var(--blue);}
+
+  /* ---------- Toggle switch ---------- */
+  .switch{position:relative;width:34px;height:19px;flex-shrink:0;border-radius:20px;background:var(--surface-3);border:1px solid var(--border);cursor:pointer;transition:background .15s;}
+  .switch::after{content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:var(--text-faint);transition:transform .15s, background .15s;}
+  .switch.on{background:var(--accent-dim);border-color:var(--accent);}
+  .switch.on::after{transform:translateX(15px);background:var(--accent);}
+
+  /* ---------- Forms ---------- */
+  label{display:block;font-size:11.5px;font-weight:600;color:var(--text-dim);margin-bottom:6px;letter-spacing:.01em;}
+  input[type=text],input[type=number],input[type=date],input[type=time],input[type=color],select,textarea{
+    width:100%;background:var(--surface-2);border:1px solid var(--border);border-radius:7px;
+    padding:9px 11px;color:var(--text);font-family:inherit;font-size:13px;
+  }
+  input[type=color]{padding:3px 5px;height:38px;cursor:pointer;}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);}
+  .field{margin-bottom:14px;}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .field-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  textarea{resize:vertical;min-height:80px;}
+  .hint{font-size:11.5px;color:var(--text-faint);margin-top:6px;}
+
+  /* ---------- Modal ---------- */
+  .modal-backdrop{position:fixed;inset:0;background:rgba(6,12,8,.7);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;overflow-y:auto;}
+  .modal-backdrop.show{display:flex;}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:100%;max-width:460px;box-shadow:0 20px 60px rgba(0,0,0,.5);margin:auto;}
+  .modal.modal-lg{max-width:720px;}
+  .modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+  .modal-head h3{font-family:var(--font-display);font-size:16px;font-weight:600;}
+  .modal-close{background:none;border:none;color:var(--text-faint);font-size:18px;}
+  .modal-body{padding:20px 22px;max-height:70vh;overflow-y:auto;}
+  .modal-foot{padding:16px 22px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;}
+
+  .empty-state{padding:40px 20px;text-align:center;color:var(--text-faint);font-size:12.5px;}
+  ::-webkit-scrollbar{height:8px;width:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:8px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+</style>
+<style>
+  /* ---------- Alerts feed (Home) ---------- */
+  .alert-feed{display:grid;gap:8px;}
+  .alert-row{display:flex;gap:12px;padding:12px 16px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;align-items:flex-start;}
+  .alert-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;background:var(--blue);}
+  .alert-dot.warn{background:var(--yellow);}
+  .alert-dot.bad{background:var(--red);}
+  .alert-dot.ok{background:var(--green);}
+  .alert-text{font-size:13px;color:var(--text-dim);}
+  .alert-text b{color:var(--text);}
+  .alert-time{font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);margin-top:3px;}
+
+  /* ---------- Fixtures: week groups ---------- */
+  .week-group{margin-bottom:18px;}
+  .week-group-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+  .week-group-head h4{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);font-weight:600;}
+  .week-group-head::after{content:'';flex:1;height:1px;background:var(--border);}
+  .fx-card{display:grid;grid-template-columns:80px 1fr auto auto;align-items:center;gap:14px;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:8px;}
+  .fx-card .fdate{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);line-height:1.4;}
+  .fx-card .fdate b{display:block;color:var(--text-dim);font-size:13px;}
+  .fx-card .fteams{font-weight:600;font-size:13.5px;color:var(--text);}
+  .fx-card .fteams span{color:var(--text-faint);font-weight:400;font-size:11.5px;}
+  .fx-card .fvenue{font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);}
+  @media(max-width:700px){.fx-card{grid-template-columns:1fr;text-align:left;}.fx-card .row-actions{justify-content:flex-start;}}
+
+  /* ---------- Venues ---------- */
+  .venue-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+  .venue-card{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
+  .venue-card .vname{font-weight:600;font-size:13.5px;margin-bottom:3px;}
+  .venue-card .vloc{font-size:11.5px;color:var(--text-faint);font-family:var(--font-mono);}
+  @media(max-width:760px){.venue-grid{grid-template-columns:1fr 1fr;}.grid-3{grid-template-columns:1fr;}}
+
+  /* ---------- Tabs ---------- */
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);padding:0 20px;}
+  .tab-btn{padding:12px 14px;font-size:12.5px;font-weight:600;color:var(--text-faint);border-bottom:2px solid transparent;cursor:pointer;}
+  .tab-btn.active{color:var(--text);border-color:var(--accent);}
+  .tab-view{display:none;}
+  .tab-view.active{display:block;}
+
+  /* ---------- Squad / players ---------- */
+  .player-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--border);}
+  .player-row:first-child{border-top:none;}
+  .player-num{width:26px;height:26px;border-radius:6px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:11px;color:var(--text-dim);flex-shrink:0;}
+  .player-name{font-weight:600;font-size:13px;flex:1;}
+  .player-meta{font-family:var(--font-mono);font-size:11px;color:var(--text-faint);}
+
+  /* ---------- Match centre ---------- */
+  .scoreboard{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius);padding:26px;text-align:center;margin-bottom:20px;}
+  .sb-teams{display:flex;align-items:center;justify-content:center;gap:24px;}
+  .sb-team{flex:1;max-width:200px;}
+  .sb-team .tname{font-weight:600;font-size:14px;margin-bottom:10px;}
+  .sb-score-controls{display:flex;align-items:center;justify-content:center;gap:10px;}
+  .score-btn{width:30px;height:30px;border-radius:7px;background:var(--surface-3);border:1px solid var(--border);color:var(--text);font-size:15px;font-weight:700;}
+  .score-btn:hover{background:var(--accent);color:#1A1200;border-color:var(--accent);}
+  .sb-score-num{font-family:var(--font-mono);font-weight:700;font-size:36px;color:var(--text);min-width:44px;}
+  .sb-mid{font-family:var(--font-display);font-size:20px;color:var(--text-faint);padding:0 10px;}
+  .sb-minute{margin-top:16px;font-family:var(--font-mono);font-size:12px;color:var(--text-dim);}
+  .event-log{display:grid;gap:8px;margin-top:14px;}
+  .event-row{display:flex;gap:10px;padding:9px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:7px;font-size:12.5px;align-items:center;}
+  .event-row .emin{font-family:var(--font-mono);color:var(--text-faint);width:30px;}
+  .event-row .etxt b{color:var(--text);}
+  .event-row .etxt{color:var(--text-dim);}
+
+  /* ---------- Branding ---------- */
+  .logo-upload{
+    width:88px;height:88px;border-radius:14px;border:1.5px dashed var(--border);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    color:var(--text-faint);font-size:11px;text-align:center;cursor:pointer;background:var(--surface-2);
+  }
+  .logo-upload:hover{border-color:var(--accent);color:var(--accent);}
+  .color-row{display:flex;align-items:center;gap:12px;}
+  .color-row .swatch-input{width:52px;flex-shrink:0;}
+  .color-preview{
+    margin-top:16px;border-radius:10px;border:1px solid var(--border);padding:18px;
+    display:flex;align-items:center;gap:14px;
+  }
+  .color-preview .pv-crest{width:44px;height:44px;border-radius:10px;flex-shrink:0;}
+  .color-preview .pv-name{font-family:var(--font-display);font-weight:600;font-size:14px;}
+  .color-preview .pv-sub{font-family:var(--font-mono);font-size:10.5px;color:var(--text-faint);}
+  .sponsor-drop{
+    border:1.5px dashed var(--border);border-radius:10px;padding:26px;text-align:center;
+    color:var(--text-faint);font-size:12.5px;cursor:pointer;
+  }
+  .sponsor-drop:hover{border-color:var(--accent);color:var(--accent);}
+  .domain-row{display:flex;align-items:center;gap:0;}
+  .domain-prefix,.domain-suffix{background:var(--surface-3);border:1px solid var(--border);padding:9px 11px;font-family:var(--font-mono);font-size:12.5px;color:var(--text-faint);white-space:nowrap;}
+  .domain-prefix{border-radius:7px 0 0 7px;border-right:none;}
+  .domain-suffix{border-radius:0 7px 7px 0;border-left:none;}
+  .domain-row input{border-radius:0;text-align:center;}
+
+  /* ---------- Auth gate ---------- */
+  .authgate{
+    position:fixed;inset:0;z-index:300;background:var(--bg);
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .authgate.hide{display:none;}
+  .authpanel{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:30px;}
+  .authpanel .brand-mark{font-family:var(--font-display);font-weight:700;font-size:20px;margin-bottom:4px;}
+  .authpanel .brand-mark span.dot{color:var(--accent);}
+  .authpanel h2{font-family:var(--font-display);font-size:16px;font-weight:600;margin:14px 0 4px;}
+  .authpanel p{font-size:12.5px;color:var(--text-faint);margin-bottom:18px;}
+  .auth-error{background:var(--red-dim);color:var(--red);border-radius:7px;padding:9px 12px;font-size:12px;margin-bottom:14px;display:none;}
+  .auth-error.show{display:block;}
+  .auth-notice{background:var(--green-dim);color:var(--green);border-radius:7px;padding:9px 12px;font-size:12px;margin-bottom:14px;display:none;}
+  .auth-notice.show{display:block;}
+  .auth-status{text-align:center;color:var(--text-faint);font-size:12.5px;padding:40px 0;}
+
+  /* ---------- Mode badge ---------- */
+  .mode-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:4px 10px;border-radius:20px;font-family:var(--font-mono);font-size:10.5px;font-weight:600;
+    background:var(--surface-3);color:var(--text-faint);
+  }
+  .mode-badge .d{width:6px;height:6px;border-radius:50%;background:var(--text-faint);}
+  .mode-badge.live{background:var(--green-dim);color:var(--green);}
+  .mode-badge.live .d{background:var(--green);}
+  .mode-badge.demo{background:var(--yellow-dim);color:var(--yellow);}
+  .mode-badge.demo .d{background:var(--yellow);}
+
+  @media(max-width:920px){
+    .stat-grid{grid-template-columns:1fr 1fr;}
+    .grid-2,.grid-3{grid-template-columns:1fr;}
+    .sidebar{transform:translateX(-100%);}
+    .sidebar.open{transform:translateX(0);}
+    .main{margin-left:0;}
+    .menu-btn{display:block;}
+    .search-box{display:none;}
+  }
+  .auth-logo{display:block;width:100%;height:auto;max-width:100%;object-fit:contain;border:0;border-radius:0;margin-bottom:14px;}
+  .side-icon{width:26px;height:26px;border:0;border-radius:0;object-fit:contain;align-self:center;}
+
+  /* ---- squad panel extras ---- */
+  .pl-thumb{width:32px;height:41px;border-radius:0;border:1px solid var(--border,#ccc);object-fit:cover;background:var(--surface-2,#eee);display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#555;overflow:hidden;vertical-align:middle;}
+  .photo-pick{display:flex;align-items:center;gap:12px;margin:4px 0 14px;}
+  .photo-pick img{width:56px;height:72px;object-fit:cover;border-radius:0;border:1px solid var(--border,#ccc);background:#f3f3f3;}
+  /* ---- printable squad sheet ---- */
+  #printSheet{display:none;}
+  @media print{
+    @page{size:A4;margin:9mm;}
+    body > *:not(#printSheet){display:none !important;}
+    #printSheet{display:block !important;background:#fff;color:#111;font-family:Georgia,'Times New Roman',serif;}
+    #printSheet *{-webkit-print-color-adjust:exact;print-color-adjust:exact;box-sizing:border-box;}
+    .ps-page{page-break-after:always;break-after:page;min-height:276mm;position:relative;padding-bottom:30mm;}
+    .ps-page:last-child{page-break-after:auto;break-after:auto;}
+    .ps-head{text-align:center;margin-bottom:5mm;position:relative;min-height:26mm;}
+    .ps-head .ps-logo{position:absolute;left:0;top:0;width:24mm;height:24mm;object-fit:contain;border:0;border-radius:0;}
+    .ps-head .ps-crest{position:absolute;right:0;top:0;width:24mm;height:24mm;border-radius:50%;background:#1f4e9a;color:#fff;display:flex;align-items:center;justify-content:center;font:700 20pt Arial,sans-serif;border:2px solid #c9971f;}
+    .ps-head h1{font-size:15pt;margin:0 0 2mm;padding-top:2mm;}
+    .ps-head h2{font-size:12.5pt;margin:0 0 1.5mm;color:#334;}
+    .ps-head p{font-size:9pt;margin:0;color:#556;}
+    .ps-grid{display:grid;grid-template-columns:1fr 1fr;gap:5mm 5mm;}
+    .ps-card{border:0.6mm solid #1f4e9a;border-radius:3mm;padding:3mm;height:58mm;display:flex;gap:3mm;align-items:flex-start;position:relative;overflow:hidden;
+      background:linear-gradient(105deg,#ffffff 0%,#ffffff 58%,#dce8fb 58%,#7ea4de 100%);}
+    .ps-card .ps-ctitle{position:absolute;top:2mm;left:0;right:0;text-align:center;font:700 7.5pt Georgia,serif;line-height:1.15;padding:0 14mm;}
+    .ps-card .ps-cbadge{position:absolute;top:2mm;right:2.5mm;width:9mm;height:9mm;object-fit:contain;border:0;border-radius:0;}
+    .ps-card .ps-photo{width:26mm;height:33.4mm;object-fit:cover;border:0.3mm solid #667;border-radius:0;margin-top:9mm;background:#e8e8e8;flex:none;}
+    .ps-card .ps-nophoto{width:26mm;height:33.4mm;margin-top:9mm;border-radius:0;border:0.3mm dashed #889;background:#f0f0f0;display:flex;align-items:center;justify-content:center;font:700 14pt Arial,sans-serif;color:#667;flex:none;}
+    .ps-card dl{margin:9mm 0 0;font-size:8.2pt;line-height:1.45;flex:1;min-width:0;}
+    .ps-card dl div{display:flex;gap:1.5mm;}
+    .ps-card dt{width:12mm;flex:none;font-weight:700;}
+    .ps-card dd{margin:0;overflow-wrap:anywhere;}
+    .ps-card dd.nm{font-weight:700;font-size:9pt;}
+    .ps-card .ps-brand{position:absolute;bottom:1.5mm;left:0;right:0;text-align:center;font:600 6.5pt Arial,sans-serif;color:#456;}
+    .ps-foot{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:flex-end;gap:8mm;font:8pt Arial,sans-serif;color:#445;}
+    .ps-stamp{flex:1;border:0.4mm dashed #889;border-radius:2mm;height:22mm;padding:1.5mm 2.5mm;}
+    .ps-pageno{width:28mm;text-align:center;}
+
+    .ps-h3{font:700 11pt Arial,sans-serif;margin:6mm 0 2mm;}
+    .ps-tables table{width:100%;border-collapse:collapse;font:9pt Arial,sans-serif;margin-bottom:3mm;}
+    .ps-tables th,.ps-tables td{border:1px solid #889;padding:1.2mm 2mm;text-align:left;}
+    .ps-tables .num{text-align:right;}
+    .ps-tables .br-wrap{display:flex;gap:6mm;}
+    .ps-tables .br-col{min-width:34mm;display:flex;flex-direction:column;justify-content:space-around;gap:3mm;}
+    .ps-tables .br-match{border:0.3mm solid #667;}
+    .ps-tables .br-team{display:flex;justify-content:space-between;padding:1mm 2mm;font:8pt Arial,sans-serif;}
+    .ps-tables .br-team.win{font-weight:700;background:#e3f3e7;}
+  }
+
+  .logo-upload.has-img{border:0;background:none;padding:0;overflow:hidden;}
+  .logo-upload img{display:block;width:100%;height:100%;object-fit:contain;border:0;border-radius:0;}
+  /* ---- knockout bracket ---- */
+  .br-wrap{display:flex;gap:22px;overflow-x:auto;padding:6px 2px 14px;}
+  .br-col{min-width:178px;display:flex;flex-direction:column;justify-content:space-around;gap:12px;}
+  .br-col h5{margin:0 0 4px;font:600 10.5px var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text-faint);}
+  .br-match{border:1px solid var(--border);border-radius:8px;background:var(--surface);overflow:hidden;}
+  .br-team{display:flex;justify-content:space-between;gap:8px;padding:7px 10px;font-size:12.5px;}
+  .br-team+.br-team{border-top:1px solid var(--border);}
+  .br-team.win{font-weight:700;background:var(--green-dim);}
+  .br-team.tbd{color:var(--text-faint);font-style:italic;}
+  .br-pens{font-size:10.5px;color:var(--text-faint);padding:0 10px 6px;}
+  .grp-title{margin:0;padding:12px 16px 4px;font:600 12px var(--font-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);}
+  .flow-hint{font-size:12.5px;color:var(--text-dim);padding:0 0 12px;}
+</style>
+</head>
+<body>
+
+<div class="authgate" id="authGate">
+  <div class="authpanel">
+    <img class="auth-logo" src="brand-logo.jpg" alt="Prolific XI — Football League Software">
+    <div id="authStatusView" class="auth-status">Resolving your league…</div>
+    <div id="authFormView" style="display:none;">
+      <h2 id="authHeading">League Admin sign in</h2>
+      <p id="authLeagueLabel">Sign in to manage your league.</p>
+      <div class="auth-error" id="authError"></div>
+      <div class="auth-notice" id="authNotice"></div>
+      <div class="field"><label>Email</label><input type="email" id="authEmail" autocomplete="username" placeholder="you@league.ke"></div>
+      <div class="field"><label>Password</label><input type="password" id="authPassword" autocomplete="current-password" placeholder="••••••••"></div>
+      <div class="field" id="authConfirmField" style="display:none;"><label>Confirm password</label><input type="password" id="authPassword2" autocomplete="new-password" placeholder="••••••••"><div class="hint">At least 8 characters.</div></div>
+      <button class="btn btn-accent btn-block" id="authBtn" onclick="submitAuth()">Sign in</button>
+      <p style="margin-top:14px;" id="authToggleLine">New league admin? <a href="#" style="color:var(--accent);" onclick="setAuthMode('signup');return false;">Create an account →</a></p>
+      <p style="margin-top:14px;">Not configured with Supabase yet? <a href="#" style="color:var(--accent);" onclick="enterDemoMode();return false;">Continue in demo mode →</a></p>
+    </div>
+  </div>
+</div>
+
+<div class="shell" id="appShell" style="display:none;">
+
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-mark"><img class="side-icon" src="icon-192.png" alt="">PROLIFIC<span class="dot"> XI</span></div>
+      <div class="brand-sub" id="brandSub">Eldoret Estates League · Admin</div>
+    </div>
+    <nav class="mainnav" id="mainnav">
+      <div class="nav-item active" data-page="home"><span class="ic">⌂</span>Home</div>
+      <div class="nav-item" data-page="setup"><span class="ic">⚙</span>Setup</div>
+      <div class="nav-item" data-page="teams"><span class="ic">⬡</span>Teams &amp; Players<span class="nav-num warn" id="navPendingCount">2</span></div>
+      <div class="nav-item" data-page="fixtures"><span class="ic">▦</span>Fixtures</div>
+      <div class="nav-item" data-page="match"><span class="ic">⚡</span>Match Centre</div>
+      <div class="nav-item" data-page="table"><span class="ic">▤</span>Table</div>
+      <div class="nav-item" data-page="finance"><span class="ic">◈</span>Finance<span class="nav-num warn" id="navUnpaidCount">3</span></div>
+      <div class="nav-item" data-page="branding"><span class="ic">◆</span>Branding</div>
+      <div class="nav-item" data-page="comms"><span class="ic">✉</span>Comms</div>
+      <div class="nav-item" data-page="sponsors"><span class="ic">★</span>Sponsors</div>
+    </nav>
+    <div class="sidebar-foot">
+      Signed in as<br><span class="who" id="sidebarWho">—</span>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+        <div>
+          <div class="page-eyebrow" id="pageEyebrow">Overview</div>
+          <div class="page-title" id="pageTitle">Home</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="mode-badge demo" id="modeBadge"><span class="d"></span>Demo data</span>
+        <input class="search-box" type="text" placeholder="Search teams, players, fixtures…">
+        <button class="btn btn-ghost btn-sm" onclick="doSignOut()">Sign out</button>
+        <div class="avatar" id="avatarInitials">FK</div>
+      </div>
+    </div>
+    <div style="height:3px;background:linear-gradient(90deg,var(--red) 0 25%,var(--green) 25% 50%,var(--blue) 50% 75%,var(--accent) 75% 100%);"></div>
+
+    <div class="page">
+
+      <!-- ========== HOME ========== -->
+      <section class="page-section active" id="page-home">
+        <div class="ticker-wrap">
+          <div class="ticker-label">Alerts</div>
+          <div class="ticker-track" id="tickerTrack"></div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Fixtures this week</div>
+            <div class="stat-value" id="statFixtures">0</div>
+            <div class="stat-delta up" id="statFixturesSub">No upcoming fixtures</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Unpaid teams</div>
+            <div class="stat-value"><span id="statUnpaid">0</span><span class="unit" id="statUnpaidOf">/ 0 teams</span></div>
+            <div class="stat-delta warn" id="statUnpaidSub">KSh 0 outstanding</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Pending approvals</div>
+            <div class="stat-value" id="statPending">0</div>
+            <div class="stat-delta warn" id="statPendingSub">Nothing waiting</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Open alerts</div>
+            <div class="stat-value" id="statAlerts">0</div>
+            <div class="stat-delta down" id="statAlertsSub">0 urgent</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Fixtures this week<small id="homeWeekLabel">—</small></div>
+              <button class="btn btn-ghost btn-sm" onclick="goPage('fixtures')">Open fixtures →</button>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Date</th><th>Fixture</th><th>Venue</th><th>Status</th></tr></thead>
+                <tbody id="homeFixturesTable"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Unpaid teams<small>Season 1 fees</small></div>
+              <button class="btn btn-ghost btn-sm" onclick="goPage('finance')">Open finance →</button>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Team</th><th>Owed</th></tr></thead>
+                <tbody id="homeUnpaidTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Recent alerts &amp; notifications</div></div>
+          <div class="panel-body">
+            <div class="alert-feed" id="alertFeed"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== SETUP ========== -->
+      <section class="page-section" id="page-setup">
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Competition format<small>Choose how this competition is played</small></div></div>
+          <div class="panel-body">
+            <div class="field"><label>Format</label>
+              <select id="formatSel" onchange="applyFormatUI(true)">
+                <option value="league">League — every team plays every other team, one table</option>
+                <option value="tournament">Tournament — group stage, then knockout rounds</option>
+              </select>
+            </div>
+            <div id="tourFields" style="display:none;">
+              <div class="field-row-3">
+                <div class="field"><label>Number of groups</label><input type="number" id="groupsCount" min="0" max="16" value="4"><div class="hint">0 = straight knockout (no groups)</div></div>
+                <div class="field"><label>Teams advancing per group</label><input type="number" id="advancePer" min="1" max="8" value="2"></div>
+                <div class="field"><label>Third-place playoff</label>
+                  <select id="thirdPlace"><option value="0">No</option><option value="1">Yes</option></select>
+                </div>
+              </div>
+              <div class="hint" style="margin-bottom:12px;">Knockout rounds are named automatically (Round of 32, Round of 16, Quarter-finals, Semi-finals, Final). If the number of qualifiers is not a power of two, the top seeds get a bye.</div>
+            </div>
+            <div class="field"><label>Team registration on the fan site</label>
+              <select id="regOpen"><option value="1">Open — coaches can apply</option><option value="0">Closed</option></select>
+              <div class="hint" id="regLinkHint"></div>
+            </div>
+            <div class="field"><label>Team registration fee (KSh)</label><input type="number" id="teamFeeInput" min="0" value="2500"><div class="hint">Charged to a team when you approve it or add it yourself.</div></div>
+            <button class="btn btn-accent" onclick="saveFormat()">Save format &amp; registration</button>
+            <div class="hint" id="formatLockHint" style="margin-top:10px;"></div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Season<small>Current season details</small></div></div>
+            <div class="panel-body">
+              <div class="field"><label>Season name</label><input type="text" id="seasonName" value="Season 1"></div>
+              <div class="field-row">
+                <div class="field"><label>Start date</label><input type="date" id="seasonStart" value="2026-04-06"></div>
+                <div class="field"><label>End date</label><input type="date" id="seasonEnd" value="2026-09-20"></div>
+              </div>
+              <div class="field"><label>Status</label>
+                <select id="seasonStatus"><option selected>Active</option><option>Upcoming</option><option>Completed</option></select>
+              </div>
+              <button class="btn btn-accent" onclick="saveSeason()">Save season</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Points system<small>Used to auto-compute the table</small></div></div>
+            <div class="panel-body">
+              <div class="field-row-3">
+                <div class="field"><label>Win</label><input type="number" id="ptsWin" value="3"></div>
+                <div class="field"><label>Draw</label><input type="number" id="ptsDraw" value="1"></div>
+                <div class="field"><label>Loss</label><input type="number" id="ptsLoss" value="0"></div>
+              </div>
+              <div class="field"><label>Tiebreaker order</label>
+                <select id="tiebreak">
+                  <option>Goal difference → Goals for → Head-to-head</option>
+                  <option>Head-to-head → Goal difference → Goals for</option>
+                  <option>Goals for → Goal difference</option>
+                </select>
+              </div>
+              <button class="btn btn-accent" onclick="savePoints()">Save points system</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Rules<small>Shown to coaches on registration</small></div></div>
+          <div class="panel-body">
+            <div class="field">
+              <textarea id="rulesText" style="min-height:110px;">Squad size: max 20 players, min 14. All players must submit a valid national ID or birth certificate copy before their first match. Two yellow cards in separate matches = automatic 1-match suspension. Teams forfeiting twice in a season may be removed from the league.</textarea>
+            </div>
+            <button class="btn btn-accent" onclick="saveRules()">Save rules</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Venues / Pitches</div>
+            <button class="btn btn-accent btn-sm" onclick="openModal('venueModal')">+ Add venue</button>
+          </div>
+          <div class="panel-body">
+            <div class="venue-grid" id="venueGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== TEAMS & PLAYERS ========== -->
+      <section class="page-section" id="page-teams">
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Add a team<small>Added straight to your approved teams</small></div></div>
+          <div class="panel-body">
+            <div class="field-row">
+              <div class="field"><label>Team name</label><input type="text" id="newTeamName" placeholder="e.g. Kapseret FC"></div>
+              <div class="field"><label>Coach</label><input type="text" id="newTeamCoach" placeholder="e.g. J. Mutai"></div>
+            </div>
+            <button class="btn btn-accent" onclick="addTeam()">Add team</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Pending approvals<small>New teams awaiting review</small></div>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Team</th><th>Coach</th><th>Phone</th><th>Submitted</th><th>Players</th><th></th></tr></thead>
+              <tbody id="pendingTeamsTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Approved teams<small id="teamCountSub">6 teams</small></div>
+            <button class="btn btn-accent btn-sm" id="drawGroupsBtn" style="display:none;" onclick="drawGroups()">🎲 Draw groups</button>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Team</th><th>Coach</th><th>Players</th><th>Fees</th><th id="grpTh" style="display:none;">Group</th><th></th></tr></thead>
+              <tbody id="approvedTeamsTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel" id="squadPanel" style="display:none;">
+          <div class="panel-head">
+            <div class="panel-title"><span id="squadTitle">Squad</span><small id="squadSub"></small></div>
+            <div class="row-actions">
+              <button class="btn btn-accent btn-sm" onclick="printSquad()">🖨 Print squad sheet</button>
+              <button class="btn btn-ghost btn-sm" onclick="closeSquad()">Close</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="field-row-3">
+              <div class="field"><label>Player name</label><input type="text" id="plName" placeholder="e.g. Quintine Inganji"></div>
+              <div class="field"><label>Shirt no.</label><input type="number" id="plNumber" min="0" max="99" placeholder="optional"></div>
+              <div class="field"><label>Position</label>
+                <select id="plPos"><option>GK</option><option>DEF</option><option selected>MID</option><option>FWD</option></select>
+              </div>
+            </div>
+            <div class="field-row-3">
+              <div class="field"><label>Registration no.</label><input type="text" id="plReg" placeholder="e.g. WKG-0001"></div>
+              <div class="field"><label>National ID no.</label><input type="text" id="plIdNo" inputmode="numeric" placeholder="optional"></div>
+              <div class="field"><label>Date of birth</label><input type="date" id="plDob"></div>
+            </div>
+            <div class="photo-pick">
+              <img id="plPhotoPreview" alt="" style="display:none;">
+              <div class="field" style="margin:0;"><label>Passport photo</label><input type="file" id="plPhoto" accept="image/*" onchange="pickPhoto(this)"></div>
+            </div>
+            <div class="row-actions">
+              <button class="btn btn-accent" id="plSaveBtn" onclick="addPlayer()">Add player</button>
+              <button class="btn btn-ghost" id="plCancelBtn" onclick="resetPlayerForm()" style="display:none;">Cancel edit</button>
+            </div>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th></th><th>No.</th><th>Player</th><th>Pos</th><th>Reg no.</th><th>ID no.</th><th>D.O.B</th><th></th></tr></thead>
+              <tbody id="squadTable"></tbody>
+            </table>
+          </div>
+        </div>
+      
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Suspensions<small>Active bans from disciplinary cards</small></div></div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Player</th><th>Team</th><th>Reason</th><th>Matches left</th></tr></thead>
+              <tbody id="suspensionsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== FIXTURES ========== -->
+      <section class="page-section" id="page-fixtures">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Fixtures<small id="fxSub">Use Reschedule to set dates and kick-off times</small></div>
+            <div class="row-actions" id="fxActions"></div>
+          </div>
+          <div class="panel-body">
+            <div class="flow-hint" id="fxHint"></div>
+            <div id="fixturesByWeek"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== MATCH CENTRE ========== -->
+      <section class="page-section" id="page-match">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Select fixture</div>
+          </div>
+          <div class="panel-body">
+            <select id="matchFixtureSelect" onchange="loadMatch()"></select>
+          </div>
+        </div>
+
+        <div class="scoreboard">
+          <div class="sb-teams">
+            <div class="sb-team">
+              <div class="tname" id="mHomeName">—</div>
+              <div class="sb-score-controls">
+                <button class="score-btn" onclick="adjustScore('home',-1)">−</button>
+                <div class="sb-score-num" id="mHomeScore">0</div>
+                <button class="score-btn" onclick="adjustScore('home',1)">+</button>
+              </div>
+            </div>
+            <div class="sb-mid">VS</div>
+            <div class="sb-team">
+              <div class="tname" id="mAwayName">—</div>
+              <div class="sb-score-controls">
+                <button class="score-btn" onclick="adjustScore('away',-1)">−</button>
+                <div class="sb-score-num" id="mAwayScore">0</div>
+                <button class="score-btn" onclick="adjustScore('away',1)">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="sb-minute" id="mStatusLine">Not started</div>
+        </div>
+
+        <div class="panel" id="pensBlock" style="display:none;">
+          <div class="panel-head"><div class="panel-title">Penalty shoot-out<small>Knockout matches cannot end level — fill this in if the score is level</small></div></div>
+          <div class="panel-body">
+            <div class="field-row">
+              <div class="field"><label id="mHomePensLbl">Home penalties</label><input type="number" id="mHomePens" min="0" max="30"></div>
+              <div class="field"><label id="mAwayPensLbl">Away penalties</label><input type="number" id="mAwayPens" min="0" max="30"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Add event<small>Goal, card, or substitution</small></div></div>
+            <div class="panel-body">
+              <div class="field-row">
+                <div class="field"><label>Minute</label><input type="number" id="evMinute" placeholder="e.g. 34"></div>
+                <div class="field"><label>Type</label>
+                  <select id="evType"><option value="⚽">Goal</option><option value="🟨">Yellow card</option><option value="🟥">Red card</option><option value="🔄">Substitution</option></select>
+                </div>
+              </div>
+              <div class="field"><label>Description</label><input type="text" id="evDesc" placeholder="e.g. D. Kiprotich scores from a corner"></div>
+              <button class="btn btn-accent btn-block" onclick="addMatchEvent()">Add to timeline</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Timeline</div></div>
+            <div class="panel-body">
+              <div class="event-log" id="matchEventLog"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-body" style="display:flex;justify-content:flex-end;gap:10px;">
+            <button class="btn btn-ghost" onclick="startMatch()">Set match LIVE</button>
+            <button class="btn btn-success" onclick="postResult()">Post final result</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== TABLE ========== -->
+      <section class="page-section" id="page-table">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title"><span id="tableTitle">League table</span><small id="tableSub">Auto-computed from posted results</small></div>
+            <button class="btn btn-ghost btn-sm" onclick="printStandings()">🖨 Print / save PDF</button>
+          </div>
+          <div class="table-scroll" id="standingsWrap"></div>
+        </div>
+        <div class="panel" id="bracketPanel" style="display:none;">
+          <div class="panel-head"><div class="panel-title">Knockout bracket<small>Winners advance automatically when you generate the next round</small></div></div>
+          <div class="panel-body"><div id="bracketWrap"></div></div>
+        </div>
+      </section>
+
+      <!-- ========== FINANCE ========== -->
+      <section class="page-section" id="page-finance">
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Collected</div>
+            <div class="stat-value" id="finCollected">KSh 0</div>
+            <div class="stat-delta up" id="finCollectedSub">0 of 0 teams billed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Owed</div>
+            <div class="stat-value" id="finOwed">KSh 0</div>
+            <div class="stat-delta warn" id="finOwedSub">0 teams outstanding</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Fines outstanding</div>
+            <div class="stat-value" id="finFines">KSh 0</div>
+            <div class="stat-delta down" id="finFinesSub">0 fines unpaid</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Next fee due</div>
+            <div class="stat-value">—</div>
+            <div class="stat-delta up">Not scheduled yet</div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Fees owed / paid</div>
+            <button class="btn btn-accent btn-sm" onclick="openModal('paymentModal')">+ Record payment</button>
+          </div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Team</th><th>Amount</th><th>Status</th><th>M-Pesa code</th></tr></thead>
+              <tbody id="feesTable"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Fines</div></div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Team / Player</th><th>Reason</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody id="finesTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== BRANDING ========== -->
+      <section class="page-section" id="page-branding">
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Logo &amp; colors</div></div>
+            <div class="panel-body">
+              <div style="display:flex;gap:16px;align-items:center;margin-bottom:18px;">
+                <div class="logo-upload" id="logoBox" onclick="document.getElementById('leagueLogoFile').click()">Upload<br>logo</div>
+                <input type="file" id="leagueLogoFile" accept="image/*" style="display:none" onchange="pickLeagueLogo(this)">
+                <div>
+                  <div class="hint">PNG or JPG, square. Shown on your fan site and printed squad sheets.</div>
+                </div>
+              </div>
+              <div class="field-row">
+                <div class="field"><label>Primary color</label><input type="color" id="colorPrimary" value="#C9971F" oninput="updateBrandPreview()"></div>
+                <div class="field"><label>Secondary color</label><input type="color" id="colorSecondary" value="#255BC7" oninput="updateBrandPreview()"></div>
+              </div>
+              <div class="color-preview">
+                <div class="pv-crest" id="pvCrest"></div>
+                <div>
+                  <div class="pv-name" id="pvName">Your league</div>
+                  <div class="pv-sub" id="pvSub"></div>
+                </div>
+              </div>
+              <button class="btn btn-accent" style="margin-top:16px;" onclick="saveBranding()">Save branding</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><div class="panel-title">Sponsors</div></div>
+            <div class="panel-body">
+              <p class="hint" style="margin:0 0 12px;">Sponsors now have their own page, with a list you can add to and remove from.</p>
+              <button class="btn btn-accent" onclick="goPage('sponsors')">Manage sponsors</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Your public pages<small>Share these links with coaches and fans</small></div></div>
+          <div class="panel-body">
+            <div class="field"><label>Fan site</label><input type="text" id="fanLink" readonly onclick="this.select()"></div>
+            <div class="field"><label>Team registration</label><input type="text" id="regLink" readonly onclick="this.select()"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== SPONSORS ========== -->
+      <section class="page-section" id="page-sponsors">
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Add a sponsor<small>Shown on your public fan site</small></div></div>
+          <div class="panel-body">
+            <div class="field-row">
+              <div class="field"><label>Sponsor name</label><input type="text" id="spName" maxlength="60" placeholder="e.g. Rift Valley Hardware &amp; Supplies"></div>
+              <div class="field"><label>Short message (optional)</label><input type="text" id="spTag" maxlength="90" placeholder="e.g. Proud sponsor of the league"></div>
+            </div>
+            <button class="btn btn-accent" onclick="addSponsor()">Add sponsor</button>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Current sponsors<small id="sponsorCountSub">0 sponsors</small></div></div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Sponsor</th><th>Message</th><th></th></tr></thead>
+              <tbody id="sponsorsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========== COMMS ========== -->
+      <section class="page-section" id="page-comms">
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Send push / SMS<small>Reaches coaches and fans instantly</small></div></div>
+          <div class="panel-body">
+            <div class="field">
+              <textarea id="commsText" placeholder="e.g. Reminder: Matchweek 9 fixtures kick off this Saturday at Kipkaren Pitch 1."></textarea>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Audience</label>
+                <select id="commsAudience"><option>All coaches</option><option>All fans</option><option>Coaches + fans</option><option>Specific team</option></select>
+              </div>
+              <div class="field"><label>Delivery</label>
+                <select id="commsDelivery"><option>Push + SMS</option><option>Push only</option><option>SMS only</option></select>
+              </div>
+            </div>
+            <button class="btn btn-accent" onclick="sendComms()">Send message</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><div class="panel-title">Sent history</div></div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Message</th><th>Audience</th><th>Sent</th></tr></thead>
+              <tbody id="commsHistoryTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- Add Venue Modal -->
+<div class="modal-backdrop" id="venueModal">
+  <div class="modal">
+    <div class="modal-head"><h3>Add venue</h3><button class="modal-close" onclick="closeModal('venueModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Venue name</label><input type="text" id="vName" placeholder="e.g. Kipkaren Pitch 2"></div>
+      <div class="field"><label>Location</label><input type="text" id="vLoc" placeholder="e.g. Kipkaren, Uasin Gishu"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('venueModal')">Cancel</button>
+      <button class="btn btn-accent" onclick="addVenue()">Add venue</button>
+    </div>
+  </div>
+</div>
+
+<!-- Record Payment Modal -->
+<div class="modal-backdrop" id="paymentModal">
+  <div class="modal">
+    <div class="modal-head"><h3>Record payment</h3><button class="modal-close" onclick="closeModal('paymentModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Team</label>
+        <select id="pTeam"></select>
+      </div>
+      <div class="field"><label>Amount (KSh)</label><input type="number" id="pAmount" placeholder="2500"></div>
+      <div class="field"><label>M-Pesa code</label><input type="text" id="pCode" placeholder="e.g. SFG7K2M9QX"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('paymentModal')">Cancel</button>
+      <button class="btn btn-accent" onclick="recordPayment()">Record payment</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+/* =====================================================================
+   SUPABASE — paste your project's values here.
+   Dashboard -> Project Settings -> API:
+     Project URL            -> SUPABASE_URL
+     anon / publishable key -> SUPABASE_KEY
+   The anon key is SAFE to ship in the browser ONLY because Row Level
+   Security is enabled (see supabase-setup.sql). Never paste the
+   service_role / secret key into this file.
+   ===================================================================== */
+const SUPABASE_URL = "https://lkjttycbqsoytnrrktip.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxranR0eWNicXNveXRucnJrdGlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMyMjc4MDQsImV4cCI6MjEwODgwMzgwNH0.T2ngpFG6qchEvuvbrQQVwvX0pM9Zqp0ot4Ojouz1LZk";
+
+let sb = null;
+let backendReady = false;
+const isPlaceholderConfig = !SUPABASE_URL || !SUPABASE_KEY || SUPABASE_URL.startsWith("YOUR_") || SUPABASE_KEY.startsWith("YOUR_");
+if(!isPlaceholderConfig){
+  try{
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    backendReady = true;
+  }catch(e){
+    console.warn('Supabase failed to initialize — %s.', e);
+  }
+}else{
+  console.warn('SUPABASE_URL / SUPABASE_KEY still have placeholder values — running in demo mode. Fill in your real project values to go live.');
+}
+
+// supabase-js returns {data, error} instead of throwing — unwrap so errors
+// flow into the existing try/catch + withTimeout fallbacks.
+async function q(builder){
+  const {data, error} = await builder;
+  if(error) throw error;
+  return data;
+}
+// UPDATE that fails loudly if Row Level Security matched zero rows.
+async function updateRow(table, id, patch){
+  const rows = await q(sb.from(table).update(patch).eq('id', id).select('id'));
+  if(!rows || !rows.length) throw new Error('Nothing was updated — your account may not have access to this league.');
+}
+
+let liveMode = false;      // true once signed in AND Supabase is configured
+let currentLeague = null;  // {id, name, subdomain, ...}
+let currentUser = null;
+
+/* ---------- League resolution (same pattern as the fan site) ---------- */
+// Set to your own domain (e.g. 'prolificxi.ke') once you have one that serves leagues as subdomains.
+const PLATFORM_DOMAIN = '';
+function getRequestedSubdomain(){
+  const params = new URLSearchParams(window.location.search);
+  if(params.get('league')) return params.get('league').toLowerCase().trim();
+  const host = window.location.hostname;
+  const parts = host.split('.');
+  if(PLATFORM_DOMAIN && host.endsWith(PLATFORM_DOMAIN) && parts.length > 2 && parts[0] !== 'admin' && parts[0] !== 'www'){
+    return parts[0].toLowerCase();
+  }
+  return null;
+}
+
+// Never let a stalled network call leave the UI stuck — race any network
+// call against a timeout and fall back to demo mode if it doesn't answer.
+function withTimeout(promise, ms, label){
+  return Promise.race([
+    promise,
+    new Promise((_,reject)=> setTimeout(()=>reject(new Error(`${label} timed out after ${ms}ms`)), ms))
+  ]);
+}
+
+async function resolveLeague(){
+  const slug = getRequestedSubdomain() || 'eldoretestates'; // fallback for local preview
+  if(!backendReady){ return null; }
+  try{
+    const rows = await withTimeout(
+      q(sb.from('leagues').select('*').eq('subdomain', slug).limit(1)),
+      8000, 'League lookup'
+    );
+    if(rows.length) return rows[0];
+    // Fallback: tolerate stray spaces / capital letters in the stored value
+    const all = await withTimeout(q(sb.from('leagues').select('*').limit(50)), 8000, 'League list');
+    const seen = [];
+    for(const l of all){
+      const v = String(l.subdomain === undefined || l.subdomain === null ? '(no subdomain)' : l.subdomain);
+      seen.push("'" + v + "'");
+      if(v.trim().toLowerCase() === slug) return l;
+    }
+    window.__leaguesSeen = all.length ? 'Subdomains found: ' + seen.join(', ') : 'The leagues table is empty or unreadable.';
+    return null;
+  }catch(e){
+    console.warn('Could not resolve league from Supabase, falling back to demo mode:', e);
+    window.__leagueError = (e && (e.code || '')) + ' ' + (e && e.message ? e.message : e);
+    backendReady = false; // stop trying to hit a Supabase project that isn't answering
+    return null;
+  }
+}
+
+/* ---------- Auth flow ---------- */
+async function initAuthGate(){
+  document.getElementById('authStatusView').textContent = 'Resolving your league…';
+  currentLeague = await resolveLeague();
+
+  if(!backendReady || !currentLeague){
+    // No Supabase config yet, or league not found — offer demo mode
+    document.getElementById('authStatusView').style.display = 'none';
+    document.getElementById('authFormView').style.display = 'block';
+    document.getElementById('authLeagueLabel').textContent = backendReady
+      ? "We couldn't find a league with subdomain '" + (getRequestedSubdomain() || 'your-league') + "'. " + (window.__leaguesSeen || '') + " You can still preview the console in demo mode."
+      : (window.__leagueError
+          ? "Could not reach your league database. Error: " + window.__leagueError
+          : "Supabase isn't configured yet — sign-in is disabled. Preview the console in demo mode instead.");
+    return;
+  }
+
+  document.getElementById('authLeagueLabel').textContent = `Sign in to manage ${currentLeague.name}.`;
+  document.getElementById('authStatusView').style.display = 'none';
+  document.getElementById('authFormView').style.display = 'block';
+
+  // supabase-js fires onAuthStateChange on sign-in, token refresh and tab refocus,
+  // so guard against re-entering the console more than once. Async work is
+  // deferred with setTimeout (calling supabase inside the callback can deadlock).
+  let handled = false;
+  const checkAccess = async (user)=>{
+    try{
+      const rows = await q(sb.from('league_users').select('id')
+        .eq('user_id', user.id).eq('league_id', currentLeague.id).limit(1));
+      if(!rows.length){
+        const justSignedUp = signedUpEmail && String(user.email||'').toLowerCase()===signedUpEmail;
+        handled = false;
+        await sb.auth.signOut();
+        if(justSignedUp){
+          const em = signedUpEmail; signedUpEmail = null;
+          setAuthMode('signin');
+          document.getElementById('authEmail').value = em; document.getElementById('authPassword').value = '';
+          showAuthNotice(`Account created for ${em}. Ask your Super Admin to link it to ${currentLeague.name}, then sign in here.`);
+        }else{
+          showAuthError(`Your account isn't linked to ${currentLeague.name}. Contact your Super Admin.`);
+        }
+        return;
+      }
+      currentUser = user;
+      liveMode = true;
+      enterConsole();
+    }catch(e){
+      handled = false;
+      showAuthError('Could not verify league access: ' + e.message);
+    }
+  };
+  sb.auth.onAuthStateChange((event, session)=>{
+    if(!session || handled) return;
+    handled = true;
+    setTimeout(()=>checkAccess(session.user), 0);
+  });
+}
+function showAuthError(msg){
+  const el = document.getElementById('authError');
+  el.textContent = msg; el.classList.add('show');
+}
+let authMode = 'signin', signedUpEmail = null;
+function setAuthMode(m){
+  authMode = m;
+  const up = m==='signup', $ = id => document.getElementById(id);
+  $('authHeading').textContent = up ? 'Create your admin account' : 'League Admin sign in';
+  $('authConfirmField').style.display = up ? '' : 'none';
+  $('authBtn').textContent = up ? 'Create account' : 'Sign in';
+  $('authPassword').setAttribute('autocomplete', up ? 'new-password' : 'current-password');
+  $('authToggleLine').innerHTML = up
+    ? 'Already have an account? <a href="#" style="color:var(--accent);" onclick="setAuthMode(\'signin\');return false;">Sign in →</a>'
+    : 'New league admin? <a href="#" style="color:var(--accent);" onclick="setAuthMode(\'signup\');return false;">Create an account →</a>';
+  $('authError').classList.remove('show'); $('authNotice').classList.remove('show');
+}
+function showAuthNotice(msg){
+  document.getElementById('authError').classList.remove('show');
+  const el = document.getElementById('authNotice'); el.textContent = msg; el.classList.add('show');
+}
+function submitAuth(){ return authMode==='signup' ? doSignUp() : doSignIn(); }
+async function doSignUp(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const again = document.getElementById('authPassword2').value;
+  document.getElementById('authError').classList.remove('show'); document.getElementById('authNotice').classList.remove('show');
+  if(!backendReady || !currentLeague){ showAuthError('Sign-up is unavailable right now.'); return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showAuthError('Enter a valid email address.'); return; }
+  if(password.length < 8){ showAuthError('Choose a password with at least 8 characters.'); return; }
+  if(password !== again){ showAuthError('The two passwords do not match.'); return; }
+  const btn = document.getElementById('authBtn'); btn.disabled = true;
+  try{
+    signedUpEmail = email.toLowerCase();
+    const {data, error} = await sb.auth.signUp({email, password});
+    if(error){ signedUpEmail = null; showAuthError(error.message); }
+    else if(!data.session){
+      // email confirmation is switched on in Supabase: no session until the address is confirmed
+      signedUpEmail = null; setAuthMode('signin');
+      showAuthNotice(`Account created. Confirm it from the email sent to ${email}, then ask your Super Admin to link you to ${currentLeague.name}.`);
+    }
+    // otherwise onAuthStateChange fires and tells the person to ask for linking (see checkAccess)
+  }catch(e){ signedUpEmail = null; showAuthError(e.message); }
+  btn.disabled = false;
+}
+async function doSignIn(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  document.getElementById('authError').classList.remove('show');
+  if(!backendReady || !currentLeague){ showAuthError('Sign-in unavailable — use demo mode below.'); return; }
+  if(!email || !password){ showAuthError('Enter your email and password.'); return; }
+  try{
+    const {error} = await sb.auth.signInWithPassword({email, password});
+    if(error) showAuthError(error.message);
+    // onAuthStateChange takes it from here
+  }catch(e){
+    showAuthError(e.message);
+  }
+}
+async function doSignOut(){
+  if(sb && liveMode){ try{ await sb.auth.signOut(); }catch(e){ console.warn(e); } }
+  location.reload();
+}
+function enterDemoMode(){
+  liveMode = false;
+  currentUser = {email:'demo@eldoretestates.ke'};
+  currentLeague = currentLeague || {id:'demo', name:'Eldoret Estates League', subdomain:'eldoretestates'};
+  enterConsole();
+}
+async function enterConsole(){
+  document.getElementById('authGate').classList.add('hide');
+  document.getElementById('appShell').style.display = 'flex';
+  document.getElementById('brandSub').textContent = `${currentLeague.name} · Admin`;
+  document.getElementById('sidebarWho').textContent = currentUser.email;
+  document.getElementById('avatarInitials').textContent = initialsOf(currentLeague.name);
+  const badge = document.getElementById('modeBadge');
+  if(liveMode){ badge.className = 'mode-badge live'; badge.innerHTML = '<span class="d"></span>Live · Supabase'; }
+  else{ badge.className = 'mode-badge demo'; badge.innerHTML = '<span class="d"></span>Demo data'; }
+  await loadAllData();
+  if(liveMode) applyLeagueSettings();
+  applyFormatUI(false);
+  refreshLinks();
+  renderEverything();
+}
+// Fill the Setup / Branding fields from this league's saved settings
+// (the HTML ships with sample defaults that must not appear on a real league).
+function applyLeagueSettings(){
+  const L = currentLeague || {};
+  const setV = (id,v)=>{ const el=document.getElementById(id); if(el) el.value = (v===null||v===undefined) ? '' : v; };
+  setV('seasonName', L.season_name);
+  setV('seasonStart', L.season_start);
+  setV('seasonEnd', L.season_end);
+  const st = document.getElementById('seasonStatus');
+  if(st && L.season_status && [...st.options].some(o=>o.text===L.season_status)) st.value = L.season_status;
+  if(L.pts_win!==null && L.pts_win!==undefined) setV('ptsWin', L.pts_win);
+  if(L.pts_draw!==null && L.pts_draw!==undefined) setV('ptsDraw', L.pts_draw);
+  if(L.pts_loss!==null && L.pts_loss!==undefined) setV('ptsLoss', L.pts_loss);
+  const tb = document.getElementById('tiebreak');
+  if(tb && L.tiebreaker && [...tb.options].some(o=>o.text===L.tiebreaker)) tb.value = L.tiebreaker;
+  setV('rulesText', L.rules_text);
+  if(L.color_primary) setV('colorPrimary', L.color_primary);
+  if(L.color_secondary) setV('colorSecondary', L.color_secondary);
+  if(typeof updateBrandPreview==='function') updateBrandPreview();
+  showLogoPreview(L.logo);
+}
+function initialsOf(name){ return (name||'PX').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); }
+
+/* ================= DEMO FALLBACK DATA ================= */
+const demoTeams = [
+  {name:"Kapseret FC", coach:"J. Mutai", players:18, feesStatus:"paid", owed:0},
+  {name:"Langas United", coach:"P. Kiplangat", players:20, feesStatus:"paid", owed:0},
+  {name:"Kipkaren Rangers", coach:"S. Chebet", players:17, feesStatus:"pending", owed:2500},
+  {name:"Elgon View FC", coach:"M. Barasa", players:19, feesStatus:"paid", owed:0},
+  {name:"Pioneer Boys", coach:"R. Kirui", players:16, feesStatus:"pending", owed:2500},
+  {name:"Race Course FC", coach:"T. Wafula", players:18, feesStatus:"pending", owed:2500},
+];
+const demoPendingTeams = [
+  {name:"Kericho Highlands FC", coach:"A. Langat", submitted:"09 Jul", players:15},
+  {name:"Thika Road Warriors", coach:"D. Otieno", submitted:"07 Jul", players:14},
+];
+const demoSuspensions = [
+  {player:"M. Barasa", team:"Elgon View FC", reason:"Second yellow card (accumulation)", left:1},
+  {player:"K. Rono", team:"Langas United", reason:"Red card — violent conduct", left:2},
+];
+const demoVenues = [
+  {name:"Kipkaren Pitch 1", loc:"Kipkaren, Uasin Gishu"},
+  {name:"Langas Community Ground", loc:"Langas, Eldoret"},
+  {name:"Elgon View School Field", loc:"Elgon View, Eldoret"},
+];
+const demoFixtures = [
+  {week:9, date:"Sat 12 Jul", time:"12:00 PM", home:"Kapseret FC", away:"Langas United", venue:"Kipkaren Pitch 1", hs:null, as:null, status:"upcoming"},
+  {week:9, date:"Sat 12 Jul", time:"2:30 PM", home:"Elgon View FC", away:"Kipkaren Rangers", venue:"Elgon View School Field", hs:null, as:null, status:"upcoming"},
+  {week:9, date:"Sun 13 Jul", time:"11:00 AM", home:"Pioneer Boys", away:"Race Course FC", venue:"Langas Community Ground", hs:null, as:null, status:"upcoming"},
+  {week:8, date:"Sat 05 Jul", time:"12:00 PM", home:"Kapseret FC", away:"Elgon View FC", venue:"Kipkaren Pitch 1", hs:3, as:1, status:"done"},
+  {week:8, date:"Sat 05 Jul", time:"2:30 PM", home:"Langas United", away:"Pioneer Boys", venue:"Langas Community Ground", hs:2, as:2, status:"done"},
+  {week:8, date:"Sun 06 Jul", time:"11:00 AM", home:"Kipkaren Rangers", away:"Race Course FC", venue:"Kipkaren Pitch 1", hs:1, as:0, status:"done"},
+  {week:7, date:"Sat 28 Jun", time:"12:00 PM", home:"Race Course FC", away:"Kapseret FC", venue:"Kipkaren Pitch 1", hs:0, as:2, status:"done"},
+  {week:7, date:"Sat 28 Jun", time:"2:30 PM", home:"Pioneer Boys", away:"Kipkaren Rangers", venue:"Langas Community Ground", hs:1, as:1, status:"done"},
+];
+const demoAlerts = [
+  {text:"<b>Kipkaren Rangers</b> fee payment is 3 days overdue", time:"2h ago", type:"warn"},
+  {text:"<b>Kericho Highlands FC</b> submitted a new team application", time:"4h ago", type:"info"},
+  {text:"<b>M. Barasa</b> (Elgon View FC) suspended after 2nd yellow card", time:"1d ago", type:"bad"},
+  {text:"Matchweek 8 results posted — standings updated", time:"1d ago", type:"ok"},
+];
+const demoFees = [
+  {team:"Kapseret FC", amount:2500, status:"paid", code:"SFG7K2M9QX"},
+  {team:"Langas United", amount:2500, status:"paid", code:"SFG7K1L4RT"},
+  {team:"Kipkaren Rangers", amount:2500, status:"pending", code:"—"},
+  {team:"Elgon View FC", amount:2500, status:"paid", code:"SFG6Z9P2WE"},
+  {team:"Pioneer Boys", amount:2500, status:"pending", code:"—"},
+  {team:"Race Course FC", amount:2500, status:"pending", code:"—"},
+];
+const demoFines = [
+  {who:"Elgon View FC — M. Barasa", reason:"Red card fine", amount:500, status:"pending"},
+  {who:"Race Course FC", reason:"Late kickoff (matchweek 7)", amount:500, status:"pending"},
+];
+const demoCommsHistory = [
+  {msg:"Reminder: fees for round 2 are due by Aug 1.", audience:"All coaches", sent:"3 days ago"},
+  {msg:"Matchweek 8 fixtures kick off this Saturday.", audience:"Coaches + fans", sent:"1 week ago"},
+];
+
+/* ================= LIVE STATE (populated by loadAllData) ================= */
+let teams = [], pendingTeams = [], suspensions = [], venues = [], fixtures = [],
+    alerts = [], fees = [], fines = [], commsHistory = [];
+let playersTableOk = true, playersV2 = true, squadTeamIdx = null, editingPlayerIdx = null, pendingPhoto = null, photoChanged = false;
+let matchEvents = {}; // keyed by fixture key (row id, or a local key in demo mode)
+let sponsors = [], sponsorsOk = true, pendingLogo = null, scoreSaveTimer = null;
+const fmt = () => (currentLeague && currentLeague.format) || 'league';
+const isTournament = () => fmt()==='tournament';
+const groupsCountN = () => { const n = Number(currentLeague && currentLeague.groups_count); return Number.isFinite(n) ? n : 4; };
+const advanceN = () => Number((currentLeague && currentLeague.advance_per_group) || 2);
+const teamFee = () => { const n = Number(currentLeague && currentLeague.team_fee); return Number.isFinite(n) && n>=0 ? n : 2500; };
+// Tournament columns exist only after supabase-v3.sql has been run
+const tournamentReady = () => !liveMode || !!(currentLeague && ('format' in currentLeague));
+
+/* ---------- Postgres rows <-> UI objects ---------- */
+// Each array item keeps `_id` (row uuid) when in live mode, so writes know
+// which row to update. Demo-mode items simply omit `_id`. The UI keeps its
+// original field names (feesStatus, hs, as, date, ...); these helpers map
+// them to the snake_case columns in supabase-setup.sql.
+const teamFromRow = r => ({_id:r.id, name:r.name, coach:r.coach||'—', players:r.players||0, status:r.status,
+  submitted:r.submitted, feesStatus:r.fees_status, owed:r.owed||0, squad:[], group:r.group_name||null, phone:r.contact_phone||''});
+const fixtureFromRow = r => ({_id:r.id, week:r.week, date:r.date_label||'', time:r.time_label||'', home:r.home,
+  away:r.away, venue:r.venue||'', hs:r.home_score, as:r.away_score, status:r.status,
+  stage:r.stage||'league', group:r.group_name||null, roundName:r.round_name||null, roundNo:r.round_no ?? null,
+  slot:r.slot ?? null, hp:r.home_pens ?? null, ap:r.away_pens ?? null});
+const fixtureToRow = f => {
+  const r = {week:f.week, date_label:f.date, time_label:f.time, home:f.home, away:f.away, venue:f.venue,
+    home_score:f.hs, away_score:f.as, status:f.status};
+  if(tournamentReady()) Object.assign(r, {stage:f.stage||'league', group_name:f.group||null, round_name:f.roundName||null,
+    round_no:f.roundNo ?? null, slot:f.slot ?? null, home_pens:f.hp ?? null, away_pens:f.ap ?? null});
+  return r;
+};
+const feeFromRow = r => ({_id:r.id, team:r.team, amount:r.amount, status:r.status, code:r.mpesa_code || '—'});
+function timeAgo(iso){
+  const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime())/60000));
+  if(mins < 1) return 'Just now';
+  if(mins < 60) return mins + 'm ago';
+  if(mins < 1440) return Math.round(mins/60) + 'h ago';
+  return Math.round(mins/1440) + 'd ago';
+}
+
+async function loadAllData(){
+  if(!liveMode){
+    teams = structuredClone(demoTeams);
+    pendingTeams = structuredClone(demoPendingTeams);
+    suspensions = structuredClone(demoSuspensions);
+    venues = structuredClone(demoVenues);
+    fixtures = structuredClone(demoFixtures);
+    alerts = structuredClone(demoAlerts);
+    fees = structuredClone(demoFees);
+    fines = structuredClone(demoFines);
+    commsHistory = structuredClone(demoCommsHistory);
+    sponsors = [{name:'Rift Valley Hardware & Supplies', tagline:'Proud sponsor of the league'}];
+    return;
+  }
+  const lid = currentLeague.id;
+  try{
+    const [teamRows, venueRows, fixtureRows, invoiceRows, fineRows, annRows] = await Promise.all([
+      q(sb.from('teams').select('*').eq('league_id', lid)),
+      q(sb.from('venues').select('*').eq('league_id', lid)),
+      q(sb.from('fixtures').select('*').eq('league_id', lid)
+        .order('week', {ascending:false}).order('created_at', {ascending:true})),
+      q(sb.from('invoices').select('*').eq('league_id', lid)),
+      q(sb.from('fines').select('*').eq('league_id', lid)),
+      q(sb.from('announcements').select('*').eq('league_id', lid).order('sent_at', {ascending:false}).limit(20)),
+    ]);
+
+    const allTeams = teamRows.map(teamFromRow);
+    // Squads live in their own table; if it hasn't been created yet the rest still loads.
+    try{
+      let pl;
+      try{
+        pl = await q(sb.from('players').select('id,league_id,team_id,name,number,position,reg_no,id_number,dob').eq('league_id', lid).order('number', {ascending:true}));
+        playersV2 = true;
+      }catch(e2){
+        // extra columns not created yet (supabase-players-v2.sql) -> basic squads still work
+        pl = await q(sb.from('players').select('id,league_id,team_id,name,number,position').eq('league_id', lid).order('number', {ascending:true}));
+        playersV2 = false;
+      }
+      allTeams.forEach(t=>{
+        t.squad = pl.filter(p=>p.team_id===t._id).map(p=>({_id:p.id, name:p.name, number:p.number, position:p.position,
+          reg:p.reg_no||'', idNo:p.id_number||'', dob:p.dob||'', photo:null}));
+        t._photos = false;
+        if(t.squad.length) t.players = t.squad.length;
+      });
+      playersTableOk = true;
+    }catch(e){ playersTableOk = false; console.warn('players table not available yet:', e); }
+    teams = allTeams.filter(t=>t.status==='approved');
+    pendingTeams = allTeams.filter(t=>t.status==='pending');
+
+    venues = venueRows.map(v=>({_id:v.id, name:v.name, loc:v.loc}));
+    fixtures = fixtureRows.map(fixtureFromRow);
+    fees = invoiceRows.map(feeFromRow);
+    fines = fineRows.map(f=>({_id:f.id, who:f.who, reason:f.reason, amount:f.amount, status:f.status}));
+    commsHistory = annRows.map(a=>({_id:a.id, msg:a.msg, audience:a.audience, sent:timeAgo(a.sent_at)}));
+    try{
+      const sp = await q(sb.from('sponsors').select('*').eq('league_id', lid).order('created_at', {ascending:true}));
+      sponsors = sp.map(x=>({_id:x.id, name:x.name, tagline:x.tagline||''})); sponsorsOk = true;
+    }catch(e){ sponsors = []; sponsorsOk = false; console.warn('sponsors table not available yet:', e); }
+
+    // Suspensions + alerts live in a lightweight `league_feed` table;
+    // fall back to empty if it can't be read.
+    try{
+      const feed = await q(sb.from('league_feed').select('*').eq('league_id', lid)
+        .order('created_at', {ascending:false}).limit(20));
+      alerts = feed.filter(f=>f.kind==='alert').map(f=>({text:f.text, time:timeAgo(f.created_at), type:f.type}));
+      suspensions = feed.filter(f=>f.kind==='suspension').map(f=>({player:f.player, team:f.team, reason:f.reason, left:f.left_count}));
+    }catch(e){
+      alerts = []; suspensions = [];
+    }
+  }catch(e){
+    console.warn('Supabase read failed, falling back to demo data for this session:', e);
+    liveMode = false;
+    document.getElementById('modeBadge').className = 'mode-badge demo';
+    document.getElementById('modeBadge').innerHTML = '<span class="d"></span>Demo data (read failed)';
+    await loadAllData();
+  }
+}
+
+function renderEverything(){
+  ensureKeys();
+  renderTicker();
+  renderHome();
+  renderVenues();
+  renderTeamsPage();
+  renderFixturesPage();
+  populateMatchSelect();
+  renderStandings();
+  renderFinance();
+  renderCommsHistory();
+  renderSponsors();
+  applyFormatUI(true);   // refresh lock/visibility only; never overwrites unsaved Setup inputs
+}
+/* ================= FORMAT: league or tournament ================= */
+const safeLogo = v => (typeof v==='string' && /^data:image\/(png|jpeg);base64,/.test(v)) ? v : '';
+const leagueLogoSrc = () => safeLogo(currentLeague && currentLeague.logo) || 'icon-192.png';
+function showLogoPreview(logo){
+  const box = document.getElementById('logoBox'); if(!box) return;
+  const src = safeLogo(logo);
+  if(src){ box.classList.add('has-img'); box.innerHTML = `<img src="${src}" alt="">`; }
+  else { box.classList.remove('has-img'); box.innerHTML = 'Upload<br>logo'; }
+}
+function refreshLinks(){
+  const L = currentLeague || {};
+  const base = (location.origin && location.origin!=='null' ? location.origin : '') + location.pathname.replace(/[^\/]*$/, '');
+  const fan = base + 'index.html?league=' + encodeURIComponent(L.subdomain || '');
+  const set = (id,v)=>{ const el=document.getElementById(id); if(el) el.value = v; };
+  set('fanLink', fan); set('regLink', fan + '#join');
+  const nm = document.getElementById('pvName'); if(nm) nm.textContent = L.name || 'Your league';
+  const sb2 = document.getElementById('pvSub'); if(sb2) sb2.textContent = L.subdomain || '';
+  const h = document.getElementById('regLinkHint'); if(h) h.textContent = 'Coaches apply at the link under Branding → Your public pages. You approve them on the Teams page.';
+}
+function applyFormatUI(fromSelect){
+  const sel = document.getElementById('formatSel'); if(!sel) return;
+  if(!fromSelect){
+    sel.value = fmt();
+    document.getElementById('groupsCount').value = currentLeague.groups_count ?? 4;
+    document.getElementById('advancePer').value = currentLeague.advance_per_group ?? 2;
+    document.getElementById('thirdPlace').value = currentLeague.third_place ? '1' : '0';
+    document.getElementById('regOpen').value = currentLeague.registration_open===false ? '0' : '1';
+    const fee = document.getElementById('teamFeeInput'); if(fee) fee.value = teamFee();
+  }
+  document.getElementById('tourFields').style.display = sel.value==='tournament' ? '' : 'none';
+  const locked = fixtures.length > 0;
+  sel.disabled = locked;
+  document.getElementById('groupsCount').disabled = fixtures.some(f=>f.stage==='group');
+  document.getElementById('formatLockHint').textContent = !tournamentReady()
+    ? 'Tournaments need one more database step: run supabase-v3.sql in the Supabase SQL Editor, then reload this page.'
+    : (locked ? 'The format is locked while fixtures exist. Delete all fixtures on the Fixtures page if you need to change it.' : '');
+  renderFixtureActions();
+}
+async function saveFormat(){
+  if(!tournamentReady()){ alert('Run supabase-v3.sql in the Supabase SQL Editor first, then reload this page.'); return; }
+  const format = document.getElementById('formatSel').value;
+  const groups = Number(document.getElementById('groupsCount').value);
+  const adv = Number(document.getElementById('advancePer').value);
+  const third = document.getElementById('thirdPlace').value==='1';
+  const reg = document.getElementById('regOpen').value==='1';
+  const fee = Number(document.getElementById('teamFeeInput').value);
+  if(format!==fmt() && fixtures.length){ alert('This competition already has fixtures, so its format cannot be changed. Delete the fixtures first.'); document.getElementById('formatSel').value = fmt(); applyFormatUI(true); return; }
+  if(format==='tournament'){
+    if(!Number.isInteger(groups) || groups<0 || groups>16 || groups===1){ alert('Number of groups must be 0 (straight knockout) or between 2 and 16.'); return; }
+    if(!Number.isInteger(adv) || adv<1 || adv>8){ alert('Teams advancing per group must be between 1 and 8.'); return; }
+    if(groups>0 && adv*groups<2){ alert('At least two teams must advance to the knockout rounds.'); return; }
+    if(groups!==groupsCountN() && fixtures.some(f=>f.stage==='group')){ alert('Group fixtures already exist, so the number of groups cannot change.'); return; }
+  }
+  if(!Number.isFinite(fee) || fee<0){ alert('Enter a valid team fee (0 or more).'); return; }
+  const patch = {format, groups_count: format==='tournament' ? groups : groupsCountN(), advance_per_group: format==='tournament' ? adv : advanceN(),
+    third_place: third, registration_open: reg, team_fee: Math.round(fee)};
+  if(liveMode){
+    try{ await updateRow('leagues', currentLeague.id, patch); }
+    catch(e){ alert('Could not save: '+e.message); return; }
+  }
+  Object.assign(currentLeague, patch);
+  applyFormatUI(false);
+  renderEverything();
+  alert('Saved.');
+}
+
+/* ================= NAV ================= */
+function goPage(name){
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active', el.dataset.page===name));
+  document.querySelectorAll('.page-section').forEach(el=>el.classList.toggle('active', el.id==='page-'+name));
+  const titles = {
+    home:['Overview','Home'], setup:['Configuration','Setup'],
+    teams:['Roster','Teams & Players'], fixtures:['Schedule','Fixtures'],
+    match:['Live control','Match Centre'], table:['Standings','Table'],
+    finance:['Money','Finance'], branding:['Identity','Branding'], comms:['Broadcast','Comms'],
+    sponsors:['Partners','Sponsors'],
+  };
+  document.getElementById('pageEyebrow').textContent = titles[name][0];
+  document.getElementById('pageTitle').textContent = titles[name][1];
+  document.getElementById('sidebar').classList.remove('open');
+}
+document.getElementById('mainnav').addEventListener('click', e=>{
+  const item = e.target.closest('.nav-item');
+  if(item) goPage(item.dataset.page);
+});
+
+/* ================= HOME ================= */
+function renderTicker(){
+  const dotClass = t => t==='bad'?'bad':t==='warn'?'warn':'';
+  const items = alerts.map(a=>`<div class="ticker-item"><span class="tdot ${dotClass(a.type)}"></span>${esc(a.text)}</div>`).join('');
+  document.getElementById('tickerTrack').innerHTML = items + items;
+}
+function statusBadge(status){
+  const map = {done:['FT','badge-active'], live:['LIVE','badge-failed'], upcoming:['Upcoming','badge-pending'],
+    paid:['Paid','badge-paid'], pending:['Pending','badge-pending'], approved:['Approved','badge-approved'], suspended:['Suspended','badge-suspended']};
+  const [label,cls] = map[status] || [status,''];
+  return `<span class="badge ${cls}"><span class="d"></span>${label}</span>`;
+}
+function renderHome(){
+  const upAll = fixtures.filter(f=>f.status==='upcoming' && f.away!=='BYE').sort((a,b)=>a.week-b.week);
+  document.getElementById('homeFixturesTable').innerHTML = upAll.slice(0,3).map(f=>`
+    <tr><td class="mono">${esc(f.date||'TBC')}</td><td class="strong">${esc(f.home)} vs ${esc(f.away)}</td><td>${esc(f.venue)}</td><td>${statusBadge(f.status)}</td></tr>
+  `).join('') || '<tr><td colspan="4" class="empty-state">No upcoming fixtures.</td></tr>';
+
+  const unpaid = teams.filter(t=>t.feesStatus==='pending');
+  document.getElementById('homeUnpaidTable').innerHTML = unpaid.map(t=>`
+    <tr><td class="strong">${esc(t.name)}</td><td class="mono">KSh ${Number(t.owed||0).toLocaleString()}</td></tr>
+  `).join('') || '<tr><td colspan="2" class="empty-state">No unpaid teams.</td></tr>';
+
+  const setT = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  const nextWeek = upAll.length ? upAll[0].week : null;
+  const thisWeek = nextWeek===null ? [] : upAll.filter(f=>f.week===nextWeek);
+  const lbl = nextWeek===null ? '—' : weekLabel(nextWeek);
+  setT('statFixtures', thisWeek.length);
+  setT('statFixturesSub', nextWeek===null ? 'No upcoming fixtures' : lbl);
+  setT('homeWeekLabel', lbl);
+  const owedTotal = unpaid.reduce((n,t)=>n+(Number(t.owed)||0),0);
+  setT('statUnpaid', unpaid.length);
+  setT('statUnpaidOf', '/ '+teams.length+' teams');
+  setT('statUnpaidSub', 'KSh '+owedTotal.toLocaleString()+' outstanding');
+  setT('statPending', pendingTeams.length);
+  setT('statPendingSub', pendingTeams.length ? 'Needs review' : 'Nothing waiting');
+  setT('statAlerts', alerts.length);
+  setT('statAlertsSub', alerts.filter(a=>a.type==='bad').length+' urgent');
+
+  const dotClass = t => t==='bad'?'bad':t==='warn'?'warn':t==='ok'?'ok':'';
+  document.getElementById('alertFeed').innerHTML = alerts.map(a=>`
+    <div class="alert-row"><div class="alert-dot ${dotClass(a.type)}"></div>
+      <div><div class="alert-text">${esc(a.text)}</div><div class="alert-time">${esc(a.time)}</div></div>
+    </div>`).join('') || '<div class="empty-state">No alerts.</div>';
+}
+/* ================= SETUP ================= */
+async function saveSeason(){
+  const data = {
+    season_name: document.getElementById('seasonName').value.trim(),
+    season_start: document.getElementById('seasonStart').value || null,
+    season_end: document.getElementById('seasonEnd').value || null,
+    season_status: document.getElementById('seasonStatus').value,
+  };
+  if(data.season_start && data.season_end && data.season_end < data.season_start){ alert('The season end date cannot be before the start date.'); return; }
+  if(liveMode){
+    try{ await updateRow('leagues', currentLeague.id, data); }
+    catch(e){ alert('Could not save season: '+e.message); return; }
+  }
+  Object.assign(currentLeague, data);
+  alert('Season details saved.');
+}
+async function savePoints(){
+  const data = {
+    pts_win: Number(document.getElementById('ptsWin').value),
+    pts_draw: Number(document.getElementById('ptsDraw').value),
+    pts_loss: Number(document.getElementById('ptsLoss').value),
+    tiebreaker: document.getElementById('tiebreak').value,
+  };
+  if([data.pts_win,data.pts_draw,data.pts_loss].some(n=>!Number.isInteger(n) || n<0 || n>10)){ alert('Points must be whole numbers from 0 to 10.'); return; }
+  if(liveMode){
+    try{ await updateRow('leagues', currentLeague.id, data); }
+    catch(e){ alert('Could not save points system: '+e.message); return; }
+  }
+  Object.assign(currentLeague, data);
+  renderStandings();
+  if(liveMode){ try{ await writeStandingsCache(); }catch(e){ console.warn(e); } }
+  alert('Points system saved. The table has been recalculated.');
+}
+async function saveRules(){
+  const rules_text = document.getElementById('rulesText').value;
+  if(liveMode){
+    try{ await updateRow('leagues', currentLeague.id, {rules_text}); }
+    catch(e){ alert('Could not save rules: '+e.message); return; }
+  }
+  currentLeague.rules_text = rules_text;
+  alert('Rules saved. They appear on your fan site.');
+}
+function renderVenues(){
+  document.getElementById('venueGrid').innerHTML = venues.map((v,i)=>`
+    <div class="venue-card"><div class="vname">${esc(v.name)}</div><div class="vloc">${esc(v.loc)}</div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:8px;" onclick="removeVenue(${i})">Remove</button></div>
+  `).join('') || '<div class="empty-state">No venues yet.</div>';
+}
+async function removeVenue(i){
+  const v = venues[i]; if(!v) return;
+  if(!confirm('Remove '+v.name+'? Existing fixtures keep their venue name.')) return;
+  if(liveMode && v._id){
+    try{ await q(sb.from('venues').delete().eq('id', v._id).select('id')); }
+    catch(e){ alert('Could not remove venue: '+e.message); return; }
+  }
+  venues.splice(i,1); renderVenues();
+}
+async function addVenue(){
+  const name = document.getElementById('vName').value.trim();
+  const loc = document.getElementById('vLoc').value.trim();
+  if(!name || !loc){ alert('Give the venue a name and location.'); return; }
+  const venue = {name, loc};
+  if(liveMode){
+    try{
+      const row = await q(sb.from('venues').insert({...venue, league_id: currentLeague.id}).select().single());
+      venue._id = row.id;
+    }catch(e){ alert('Could not save venue: '+e.message); return; }
+  }
+  venues.push(venue);
+  document.getElementById('vName').value=''; document.getElementById('vLoc').value='';
+  closeModal('venueModal');
+  renderVenues();
+}
+
+/* ================= TEAMS & PLAYERS ================= */
+function renderTeamsPage(){
+  byId('navPendingCount').textContent = pendingTeams.length;
+  byId('teamCountSub').textContent = teams.length + (teams.length===1 ? ' team' : ' teams');
+  const showGrp = isTournament() && groupsCountN()>0;
+  const locked = fixtures.some(f=>f.stage==='group');
+  byId('grpTh').style.display = showGrp ? '' : 'none';
+  byId('drawGroupsBtn').style.display = showGrp ? '' : 'none';
+
+  byId('pendingTeamsTable').innerHTML = pendingTeams.map((t,i)=>`
+    <tr>
+      <td class="strong">${esc(t.name)}</td><td>${esc(t.coach)}</td><td class="mono">${esc(t.phone||'—')}</td><td class="mono">${esc(t.submitted||'')}</td><td>${esc(t.players)}</td>
+      <td><div class="row-actions">
+        <button class="btn btn-success btn-sm" onclick="approveTeam(${i})">Approve</button>
+        <button class="btn btn-danger btn-sm" onclick="rejectTeam(${i})">Reject</button>
+      </div></td>
+    </tr>`).join('') || `<tr><td colspan="6" class="empty-state">No pending applications.</td></tr>`;
+
+  byId('approvedTeamsTable').innerHTML = teams.map((t,i)=>`
+    <tr>
+      <td class="strong">${esc(t.name)}</td><td>${esc(t.coach)}</td><td>${esc(t.players)}</td>
+      <td>${statusBadge(t.feesStatus)}</td>
+      <td style="${showGrp?'':'display:none;'}"><select onchange="assignGroup(${i}, this.value)" ${locked?'disabled':''}>
+        <option value="">—</option>${groupLetters().map(L=>`<option value="${L}"${t.group===L?' selected':''}>${L}</option>`).join('')}</select></td>
+      <td><div class="row-actions"><button class="btn btn-ghost btn-sm" onclick="openSquad(${i})">Squad</button><button class="btn btn-danger btn-sm" onclick="removeTeam(${i})">Remove</button></div></td>
+    </tr>`).join('') || `<tr><td colspan="6" class="empty-state">No approved teams yet. Add one above.</td></tr>`;
+
+  byId('suspensionsTable').innerHTML = suspensions.map(s=>`
+    <tr><td class="strong">${esc(s.player)}</td><td>${esc(s.team)}</td><td>${esc(s.reason)}</td><td class="mono">${esc(s.left)}</td></tr>
+  `).join('') || `<tr><td colspan="4" class="empty-state">No active suspensions.</td></tr>`;
+}
+const esc = v => String(v==null?'':v).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const byId = id => document.getElementById(id);
+const dupName = n => [...teams, ...pendingTeams].some(t=>String(t.name).trim().toLowerCase()===n.toLowerCase());
+
+async function addTeam(){
+  const name = byId('newTeamName').value.trim().replace(/\s+/g,' ');
+  const coach = byId('newTeamCoach').value.trim();
+  if(name.length<2 || name.length>60){ alert('Enter a team name (2–60 characters).'); return; }
+  if(name.toLowerCase()==='bye'){ alert('Please choose a different team name.'); return; }
+  if(dupName(name)){ alert('A team called "'+name+'" already exists in this league.'); return; }
+  const team = {name, coach: coach || '—', players:0, feesStatus:'pending', owed:teamFee(), squad:[], group:null, phone:''};
+  if(liveMode){
+    try{
+      const row = await q(sb.from('teams').insert({league_id: currentLeague.id, name, coach: coach||null,
+        players:0, status:'approved', fees_status:'pending', owed:teamFee()}).select().single());
+      team._id = row.id;
+    }catch(e){ alert(e.code==='23505' ? 'A team with that name already exists.' : 'Could not add team: '+e.message); return; }
+  }
+  teams.push(team);
+  byId('newTeamName').value = ''; byId('newTeamCoach').value = '';
+  renderEverything();
+}
+async function removeTeam(i){
+  const t = teams[i]; if(!t) return;
+  if(fixtures.some(f=>f.home===t.name || f.away===t.name)){
+    alert(t.name+' already has fixtures, so it cannot be removed. Delete the fixtures first (Fixtures page).'); return;
+  }
+  if(!confirm('Remove '+t.name+' and its squad? This cannot be undone.')) return;
+  if(liveMode && t._id){
+    try{
+      const gone = await q(sb.from('teams').delete().eq('id', t._id).select('id'));
+      if(!gone.length) throw new Error('Nothing was removed.');
+      await q(sb.from('standings_cache').delete().eq('league_id', currentLeague.id).eq('team', t.name).select('team'));
+    }catch(e){ alert('Could not remove team: '+e.message); return; }
+  }
+  teams.splice(i,1);
+  if(squadTeamIdx!==null) closeSquad();
+  renderEverything();
+}
+async function assignGroup(i, L){
+  const t = teams[i]; if(!t) return;
+  if(fixtures.some(f=>f.stage==='group')){ alert('Group fixtures already exist, so groups are locked.'); renderTeamsPage(); return; }
+  if(liveMode && t._id){
+    try{ await updateRow('teams', t._id, {group_name: L || null}); }
+    catch(e){ alert('Could not set the group: '+e.message); renderTeamsPage(); return; }
+  }
+  t.group = L || null;
+  renderTeamsPage(); renderStandings();
+}
+async function drawGroups(){
+  if(!isTournament() || groupsCountN()<2){ alert('Set the number of groups under Setup first.'); return; }
+  if(fixtures.some(f=>f.stage==='group')){ alert('Group fixtures already exist, so groups are locked.'); return; }
+  if(teams.length < groupsCountN()*2){ alert(`You need at least ${groupsCountN()*2} approved teams for ${groupsCountN()} groups (two per group).`); return; }
+  if(!confirm('Draw teams into groups at random? This replaces any groups already chosen.')) return;
+  const order = [...teams].sort(()=>Math.random()-0.5), L = groupLetters();
+  const plan = order.map((t,k)=>({t, g: L[k % L.length]}));
+  if(liveMode){
+    try{ await Promise.all(plan.filter(p=>p.t._id).map(p=>updateRow('teams', p.t._id, {group_name: p.g}))); }
+    catch(e){ alert('Could not save the draw: '+e.message); return; }
+  }
+  plan.forEach(p=>{ p.t.group = p.g; });
+  renderTeamsPage(); renderStandings();
+}
+const fmtDMY = iso => { if(!iso) return '—'; const [y,m,d] = String(iso).split('-'); return (d&&m&&y) ? `${d}/${m}/${y}` : '—'; };
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const fmtMonYear = iso => { if(!iso) return ''; const [y,m] = String(iso).split('-'); return MON[(+m||1)-1]+' '+y; };
+const safePhoto = p => (typeof p==='string' && p.startsWith('data:image/jpeg;base64,')) ? p : '';
+
+function openSquad(i){
+  squadTeamIdx = i;
+  resetPlayerForm();
+  byId('squadPanel').style.display = '';
+  renderSquad();
+  byId('squadPanel').scrollIntoView({behavior:'smooth', block:'start'});
+  ensurePhotos(teams[i]).then(()=>{ if(squadTeamIdx===i) renderSquad(); });
+}
+function closeSquad(){ squadTeamIdx = null; byId('squadPanel').style.display = 'none'; }
+
+// Photos are fetched on demand (they're the heavy part of a player record)
+async function ensurePhotos(t){
+  if(!t || t._photos || !liveMode || !playersV2 || !t._id || !(t.squad||[]).length) return;
+  try{
+    const rows = await q(sb.from('players').select('id,photo').eq('team_id', t._id));
+    const m = new Map(rows.map(r=>[r.id, r.photo]));
+    t.squad.forEach(p=>{ if(m.has(p._id)) p.photo = m.get(p._id); });
+    t._photos = true;
+  }catch(e){ console.warn('photos not loaded', e); }
+}
+
+// Shrink the phone photo to a small portrait JPEG before storing it
+function resizePhoto(file){
+  return new Promise((res, rej)=>{
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = ()=>{
+      const W=280, H=360, c=document.createElement('canvas'); c.width=W; c.height=H;
+      const r = Math.max(W/img.width, H/img.height), w = img.width*r, h = img.height*r;
+      c.getContext('2d').drawImage(img, (W-w)/2, (H-h)*0.3, w, h);   // bias towards the face
+      URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.78));
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); rej(new Error('Could not read that image')); };
+    img.src = url;
+  });
+}
+async function pickPhoto(input){
+  const f = input.files && input.files[0]; if(!f) return;
+  try{
+    pendingPhoto = await resizePhoto(f); photoChanged = true;
+    const pv = byId('plPhotoPreview'); pv.src = pendingPhoto; pv.style.display = '';
+  }catch(e){ alert(e.message); input.value = ''; }
+}
+function resetPlayerForm(){
+  editingPlayerIdx = null; pendingPhoto = null; photoChanged = false;
+  ['plName','plNumber','plReg','plIdNo','plDob'].forEach(id=>{ const el=byId(id); if(el) el.value=''; });
+  const ph = byId('plPhoto'); if(ph) ph.value = '';
+  const pv = byId('plPhotoPreview'); if(pv){ pv.style.display='none'; pv.removeAttribute('src'); }
+  const b = byId('plSaveBtn'); if(b) b.textContent = 'Add player';
+  const c = byId('plCancelBtn'); if(c) c.style.display = 'none';
+}
+function renderSquad(){
+  const t = teams[squadTeamIdx];
+  if(!t){ closeSquad(); return; }
+  t.squad = t.squad || [];
+  byId('squadTitle').textContent = t.name + ' — squad';
+  byId('squadSub').textContent = t.squad.length + (t.squad.length===1 ? ' player' : ' players');
+  byId('squadTable').innerHTML = t.squad.map((p,j)=>`
+    <tr>
+      <td>${safePhoto(p.photo) ? `<img class="pl-thumb" src="${safePhoto(p.photo)}" alt="">` : `<span class="pl-thumb">${esc(initialsOf(p.name))}</span>`}</td>
+      <td class="mono">${p.number ?? '—'}</td><td class="strong">${esc(p.name)}</td><td>${esc(p.position||'')}</td>
+      <td class="mono">${esc(p.reg||'—')}</td><td class="mono">${esc(p.idNo||'—')}</td><td class="mono">${fmtDMY(p.dob)}</td>
+      <td><div class="row-actions"><button class="btn btn-ghost btn-sm" onclick="editPlayer(${j})">Edit</button><button class="btn btn-danger btn-sm" onclick="removePlayer(${j})">Remove</button></div></td>
+    </tr>`).join('') || '<tr><td colspan="8" class="empty-state">No players yet. Add the first one above.</td></tr>';
+}
+function editPlayer(j){
+  const t = teams[squadTeamIdx]; const p = t.squad[j]; if(!p) return;
+  editingPlayerIdx = j; pendingPhoto = null; photoChanged = false;
+  byId('plName').value = p.name; byId('plNumber').value = p.number ?? ''; byId('plPos').value = p.position || 'MID';
+  byId('plReg').value = p.reg || ''; byId('plIdNo').value = p.idNo || ''; byId('plDob').value = p.dob || '';
+  const pv = byId('plPhotoPreview');
+  if(safePhoto(p.photo)){ pv.src = p.photo; pv.style.display = ''; } else { pv.style.display = 'none'; }
+  byId('plSaveBtn').textContent = 'Save changes'; byId('plCancelBtn').style.display = '';
+  byId('plName').scrollIntoView({behavior:'smooth', block:'center'});
+}
+async function syncPlayerCount(t){
+  t.players = t.squad.length;
+  if(liveMode && t._id){ try{ await updateRow('teams', t._id, {players: t.players}); }catch(e){ console.warn(e); } }
+}
+async function addPlayer(){
+  const t = teams[squadTeamIdx]; if(!t) return;
+  t.squad = t.squad || [];
+  const editing = editingPlayerIdx !== null;
+  const cur = editing ? t.squad[editingPlayerIdx] : null;
+  const name = byId('plName').value.trim();
+  const numRaw = String(byId('plNumber').value ?? '').trim();
+  const number = numRaw==='' ? null : Number(numRaw);
+  const position = byId('plPos').value;
+  const reg = byId('plReg').value.trim();
+  const idNo = byId('plIdNo').value.trim();
+  const dob = byId('plDob').value;
+  if(!name){ alert('Enter the player\'s name.'); return; }
+  if(number!==null && (!Number.isInteger(number) || number<0 || number>99)){ alert('Shirt number must be 0–99.'); return; }
+  if(number!==null && t.squad.some(p=>p!==cur && p.number===number)){ alert('Shirt number '+number+' is already taken in this squad.'); return; }
+  if(dob && dob > new Date().toISOString().slice(0,10)){ alert('Date of birth cannot be in the future.'); return; }
+  if(liveMode && !playersTableOk){ alert('Squads need one more database step: run supabase-players.sql in the Supabase SQL Editor, then reload this page.'); return; }
+  const extras = {reg_no: reg||null, id_number: idNo||null, dob: dob||null};
+  const hasExtras = reg || idNo || dob || pendingPhoto || (editing && cur && (cur.photo || cur.reg || cur.idNo || cur.dob));
+  if(liveMode && !playersV2 && hasExtras){
+    alert('To save registration numbers, ID numbers, dates of birth and photos, run supabase-players-v2.sql in the Supabase SQL Editor, then reload this page.'); return;
+  }
+  const player = editing ? cur : {};
+  try{
+    if(liveMode){
+      const base = {name, number, position};
+      const body = playersV2 ? {...base, ...extras, ...(photoChanged ? {photo: pendingPhoto} : {})} : base;
+      if(editing){ await updateRow('players', cur._id, body); }
+      else{
+        const row = await q(sb.from('players').insert({league_id: currentLeague.id, team_id: t._id, ...body}).select('id').single());
+        player._id = row.id;
+      }
+    }
+  }catch(e){
+    alert(e.code==='23505' ? 'That registration number is already used in this league.' : 'Could not save player: '+e.message); return;
+  }
+  Object.assign(player, {name, number, position, reg, idNo, dob});
+  if(photoChanged) player.photo = pendingPhoto;
+  else if(!editing) player.photo = null;
+  if(!editing) t.squad.push(player);
+  t.squad.sort((a,b)=>(a.number ?? 999)-(b.number ?? 999));
+  resetPlayerForm();
+  await syncPlayerCount(t);
+  renderSquad(); renderTeamsPage();
+}
+async function removePlayer(j){
+  const t = teams[squadTeamIdx]; if(!t) return;
+  const p = t.squad[j];
+  if(!confirm('Remove '+p.name+' from '+t.name+'?')) return;
+  if(liveMode && p._id){
+    try{
+      const gone = await q(sb.from('players').delete().eq('id', p._id).select('id'));
+      if(!gone.length) throw new Error('Nothing was removed.');
+    }catch(e){ alert('Could not remove player: '+e.message); return; }
+  }
+  t.squad.splice(j,1);
+  if(editingPlayerIdx!==null) resetPlayerForm();
+  await syncPlayerCount(t);
+  renderSquad(); renderTeamsPage();
+}
+
+/* ---------- printable squad sheet (ID-card layout, 6 cards per A4 page) ---------- */
+async function printSquad(){
+  const t = teams[squadTeamIdx];
+  if(!t || !(t.squad||[]).length){ alert('Add at least one player first.'); return; }
+  await ensurePhotos(t);
+  const L = currentLeague || {};
+  const season = L.season_name || '';
+  const valid = (L.season_start && L.season_end) ? fmtMonYear(L.season_start)+' to '+fmtMonYear(L.season_end) : '—';
+  const title = (L.name||'League') + (season ? ' ' + season : '');
+  const players = [...t.squad].sort((a,b)=>(a.number ?? 999)-(b.number ?? 999) || a.name.localeCompare(b.name));
+  const per = 6, pages = Math.ceil(players.length/per);
+  const card = p => `
+    <div class="ps-card">
+      <div class="ps-ctitle">${esc(title)}</div>
+      <img class="ps-cbadge" src="${leagueLogoSrc()}" alt="">
+      ${safePhoto(p.photo) ? `<img class="ps-photo" src="${safePhoto(p.photo)}" alt="">` : `<div class="ps-nophoto">${esc(initialsOf(p.name))}</div>`}
+      <dl>
+        <div><dt>Name</dt><dd class="nm">: ${esc(p.name)}</dd></div>
+        <div><dt>Reg</dt><dd>: ${esc(p.reg||'—')}</dd></div>
+        <div><dt>Team</dt><dd>: ${esc(t.name)}</dd></div>
+        <div><dt>ID No</dt><dd>: ${esc(p.idNo||'—')}</dd></div>
+        <div><dt>D.O.B</dt><dd>: ${fmtDMY(p.dob)}</dd></div>
+        <div><dt>Valid</dt><dd>: ${esc(valid)}</dd></div>
+      </dl>
+      <div class="ps-brand">© Prolific XI${p.number!=null ? ' · #'+p.number : ''}${p.position ? ' · '+esc(p.position) : ''}</div>
+    </div>`;
+  let html = '';
+  for(let pg=0; pg<pages; pg++){
+    html += `<div class="ps-page">
+      <div class="ps-head">
+        <img class="ps-logo" src="${leagueLogoSrc()}" alt="">
+        <div class="ps-crest">${esc(initialsOf(t.name))}</div>
+        <h1>${esc(title)}</h1>
+        <h2>${esc(t.name)} Squad (${players.length} Player${players.length===1?'':'s'})</h2>
+        <p>Official player registration sheet · Powered by Prolific XI</p>
+      </div>
+      <div class="ps-grid">${players.slice(pg*per, pg*per+per).map(card).join('')}</div>
+      <div class="ps-foot">
+        <div class="ps-stamp">League stamp &amp; date</div>
+        <div class="ps-stamp">League secretary signature</div>
+        <div class="ps-pageno">Page ${pg+1} of ${pages}</div>
+      </div>
+    </div>`;
+  }
+  await showPrintSheet(html);
+}
+
+async function approveTeam(i){
+  const t = pendingTeams[i]; if(!t) return;
+  if(liveMode && t._id){
+    try{ await updateRow('teams', t._id, {status:'approved', fees_status:'pending', owed:teamFee()}); }
+    catch(e){ alert('Could not approve: '+e.message); return; }
+  }
+  pendingTeams.splice(i,1);
+  teams.push({...t, status:'approved', feesStatus:'pending', owed:teamFee(), squad:t.squad||[], group:null});
+  renderEverything();
+}
+async function rejectTeam(i){
+  const t = pendingTeams[i]; if(!t) return;
+  if(!confirm('Reject and delete the application from '+t.name+'?')) return;
+  if(liveMode && t._id){
+    try{ await q(sb.from('teams').delete().eq('id', t._id).select('id')); }
+    catch(e){ alert('Could not reject: '+e.message); return; }
+  }
+  pendingTeams.splice(i,1);
+  renderEverything();
+}
+/* ================= FIXTURES & TOURNAMENT ENGINE ================= */
+const nextPow2 = n => { let p = 1; while(p < n) p *= 2; return p; };
+const roundNameFor = size => size===2 ? 'Final' : size===4 ? 'Semi-finals' : size===8 ? 'Quarter-finals' : 'Round of '+size;
+const groupLetter = i => String.fromCharCode(65 + i);
+const groupLetters = () => Array.from({length: Math.max(0, groupsCountN())}, (_,i)=>groupLetter(i));
+
+// Circle-method round robin. Returns an array of rounds, each an array of [home, away].
+function roundRobin(names, legs){
+  const t = [...names]; if(t.length % 2) t.push(null);
+  const n = t.length, rounds = [];
+  for(let r=0; r<n-1; r++){
+    const m = [];
+    for(let i=0; i<n/2; i++){
+      let a = t[i], b = t[n-1-i];
+      if(a===null || b===null) continue;
+      if(i===0 && r%2===1) [a,b] = [b,a];
+      m.push([a,b]);
+    }
+    rounds.push(m);
+    t.splice(1, 0, t.pop());
+  }
+  return legs===2 ? rounds.concat(rounds.map(rd=>rd.map(([h,a])=>[a,h]))) : rounds;
+}
+// Standard bracket seeding: 1 plays the lowest seed and the top seeds meet only late.
+function seedOrder(size){ let o = [1]; while(o.length < size){ const n = o.length*2; o = o.flatMap(s=>[s, n+1-s]); } return o; }
+function bracketPairs(seeds, groupOf){
+  const size = nextPow2(Math.max(2, seeds.length));
+  const slots = seedOrder(size).map(s=>seeds[s-1] ?? null);
+  const pairs = [];
+  for(let i=0; i<size; i+=2) pairs.push([slots[i], slots[i+1]]);
+  if(groupOf){   // try to avoid first-round rematches of teams from the same group
+    const clash = (x,y)=> !!(x && y && groupOf(x) && groupOf(x)===groupOf(y));
+    pairs.forEach((p,i)=>{
+      if(!clash(p[0],p[1])) return;
+      for(let j=0; j<pairs.length; j++){
+        if(j===i) continue;
+        const q2 = pairs[j];
+        if(q2[1] && !clash(p[0],q2[1]) && !clash(q2[0],p[1])){ [p[1], q2[1]] = [q2[1], p[1]]; break; }
+      }
+    });
+  }
+  return {size, pairs};
+}
+function winnerOf(f){
+  if(!f || f.status!=='done') return null;
+  if(f.away==='BYE') return f.home;
+  if(f.hs>f.as) return f.home;
+  if(f.as>f.hs) return f.away;
+  if(f.hp!=null && f.ap!=null && f.hp!==f.ap) return f.hp>f.ap ? f.home : f.away;
+  return null;
+}
+function loserOf(f){ const w = winnerOf(f); return w ? (w===f.home ? f.away : f.home) : null; }
+
+/* ---------- standings ---------- */
+function pointsCfg(){
+  const L = currentLeague || {};
+  const n = (v,d)=> (v===null || v===undefined || v==='' || !Number.isFinite(Number(v))) ? d : Number(v);
+  return {win:n(L.pts_win,3), draw:n(L.pts_draw,1), loss:n(L.pts_loss,0)};
+}
+function tiebreakMode(){
+  const t = (currentLeague && currentLeague.tiebreaker) || '';
+  return t.startsWith('Head-to-head') ? 'h2h' : t.startsWith('Goals for') ? 'gf' : 'gd';
+}
+function buildTable(names, fx){
+  const cfg = pointsCfg(), tb = {};
+  names.forEach(n=>{ tb[n] = {team:n, p:0, w:0, d:0, l:0, gf:0, ga:0, pts:0}; });
+  const played = fx.filter(f=>f.status==='done' && f.away!=='BYE' && tb[f.home] && tb[f.away]);
+  played.forEach(f=>{
+    const h = tb[f.home], a = tb[f.away], hs = Number(f.hs)||0, as = Number(f.as)||0;
+    h.p++; a.p++; h.gf+=hs; h.ga+=as; a.gf+=as; a.ga+=hs;
+    if(hs > as){ h.w++; a.l++; h.pts+=cfg.win; a.pts+=cfg.loss; }
+    else if(hs < as){ a.w++; h.l++; a.pts+=cfg.win; h.pts+=cfg.loss; }
+    else { h.d++; a.d++; h.pts+=cfg.draw; a.pts+=cfg.draw; }
+  });
+  const h2h = (x,y)=>{   // >0 when x beat y on points in their direct matches
+    let px = 0, py = 0;
+    played.forEach(f=>{
+      if(!((f.home===x && f.away===y) || (f.home===y && f.away===x))) return;
+      const xs = f.home===x ? f.hs : f.as, ys = f.home===x ? f.as : f.hs;
+      if(xs > ys){ px+=cfg.win; py+=cfg.loss; } else if(xs < ys){ py+=cfg.win; px+=cfg.loss; } else { px+=cfg.draw; py+=cfg.draw; }
+    });
+    return px - py;
+  };
+  const mode = tiebreakMode();
+  const rows = Object.values(tb).sort((a,b)=>{
+    if(b.pts !== a.pts) return b.pts - a.pts;
+    const gd = (b.gf-b.ga) - (a.gf-a.ga), gf = b.gf - a.gf, hh = h2h(b.team, a.team);
+    const order = mode==='h2h' ? [hh,gd,gf] : mode==='gf' ? [gf,gd,hh] : [gd,gf,hh];
+    for(const v of order) if(v) return v;
+    return a.team.localeCompare(b.team);
+  });
+  rows.forEach((r,i)=>{ r.pos = i+1; });
+  return rows;
+}
+function computeStandings(){ return buildTable(teams.map(t=>t.name), fixtures.filter(f=>f.stage==='league')); }
+function computeGroupTables(){
+  const out = {};
+  groupLetters().forEach(L=>{
+    out[L] = buildTable(teams.filter(t=>t.group===L).map(t=>t.name), fixtures.filter(f=>f.stage==='group' && f.group===L));
+  });
+  return out;
+}
+
+/* ---------- fixture factories ---------- */
+const pickVenue = i => venues.length ? venues[i % venues.length].name : 'TBC';
+function newFx(o){
+  return Object.assign({week:1, date:'TBC', time:'TBC', home:'', away:'', venue:'TBC', hs:null, as:null, status:'upcoming',
+    stage:'league', group:null, roundName:null, roundNo:null, slot:null, hp:null, ap:null}, o);
+}
+let kSeq = 0;
+const fxKey = f => f._id || f._k;
+function ensureKeys(){ fixtures.forEach(f=>{ if(!f._id && !f._k) f._k = 'k' + (++kSeq); }); }
+async function saveNewFixtures(list){
+  const saved = [];
+  if(liveMode){
+    try{
+      for(let i=0; i<list.length; i+=100){
+        const chunk = list.slice(i, i+100);
+        const rows = await q(sb.from('fixtures').insert(chunk.map(f=>({...fixtureToRow(f), league_id: currentLeague.id}))).select('id'));
+        chunk.forEach((f,k)=>{ f._id = rows[k].id; saved.push(f); });
+      }
+    }catch(e){
+      if(saved.length){ fixtures = [...saved, ...fixtures]; renderEverything(); }
+      alert('Could not save all fixtures: '+e.message+(saved.length ? ' ('+saved.length+' were saved.)' : ''));
+      return false;
+    }
+  }
+  fixtures = [...list, ...fixtures];
+  renderEverything();
+  return true;
+}
+function legsPrompt(){
+  const v = prompt('How many rounds?\n1 = every team plays each other once\n2 = home and away (each pair plays twice)', '1');
+  if(v===null) return null;
+  const n = Number(v);
+  if(n!==1 && n!==2){ alert('Please enter 1 or 2.'); return null; }
+  return n;
+}
+
+async function generateSeason(){
+  if(teams.length < 2){ alert('Add at least two approved teams first.'); return; }
+  const legs = legsPrompt(); if(legs===null) return;
+  const exist = new Set(fixtures.filter(f=>f.stage==='league').map(f=>f.home+'|'+f.away));
+  const rounds = roundRobin(teams.map(t=>t.name), legs);
+  const base = fixtures.length ? Math.max(...fixtures.map(f=>f.week)) : 0;
+  const out = []; let vi = 0;
+  rounds.forEach((rd,ri)=>rd.forEach(([h,a])=>{
+    if(exist.has(h+'|'+a)) return;
+    out.push(newFx({week: base+ri+1, home:h, away:a, venue: pickVenue(vi++), stage:'league'}));
+  }));
+  if(!out.length){ alert('Every pairing already has a fixture.'); return; }
+  const weeks = new Set(out.map(f=>f.week)).size;
+  if(!confirm(`Create ${out.length} fixtures over ${weeks} matchweeks? Existing fixtures are kept.`)) return;
+  if(await saveNewFixtures(out)) alert('Fixtures created. Use Reschedule to set real dates and times.');
+}
+async function generateGroupFixtures(){
+  if(!isTournament()){ alert('This competition is a league. Use Generate season.'); return; }
+  const letters = groupLetters();
+  if(!letters.length){ alert('This tournament has no group stage (straight knockout). Use the knockout button.'); return; }
+  if(fixtures.some(f=>f.stage==='group')){ alert('Group fixtures have already been generated.'); return; }
+  const missing = teams.filter(t=>!t.group || !letters.includes(t.group));
+  if(missing.length){ alert(`${missing.length} team(s) have no group yet. Go to Teams & Players and use "Draw groups" or pick a group for each team.`); return; }
+  const small = letters.filter(L=>teams.filter(t=>t.group===L).length < 2);
+  if(small.length){ alert('Every group needs at least two teams. Check group '+small.join(', ')+'.'); return; }
+  const legs = legsPrompt(); if(legs===null) return;
+  const out = []; let vi = 0;
+  letters.forEach(L=>{
+    roundRobin(teams.filter(t=>t.group===L).map(t=>t.name), legs).forEach((rd,ri)=>rd.forEach(([h,a])=>{
+      out.push(newFx({week: ri+1, home:h, away:a, venue: pickVenue(vi++), stage:'group', group:L}));
+    }));
+  });
+  if(!confirm(`Create ${out.length} group fixtures across ${letters.length} groups?`)) return;
+  if(await saveNewFixtures(out)) alert('Group fixtures created. Use Reschedule to set dates and times.');
+}
+function qualifierSeeds(){
+  const tabs = computeGroupTables(), adv = advanceN(), byRank = [];
+  for(let r=0; r<adv; r++){
+    const level = [];
+    Object.entries(tabs).forEach(([L,rows])=>{ if(rows[r]) level.push({...rows[r], group:L}); });
+    level.sort((a,b)=> b.pts-a.pts || (b.gf-b.ga)-(a.gf-a.ga) || b.gf-a.gf || a.team.localeCompare(b.team));
+    byRank.push(...level.map(x=>x.team));
+  }
+  return byRank;
+}
+async function generateKnockout(){
+  if(!isTournament()){ alert('This competition is a league. Knockout rounds are for tournaments.'); return; }
+  const ko = fixtures.filter(f=>f.stage==='knockout');
+  const gs = groupsCountN();
+  const base = fixtures.length ? Math.max(...fixtures.map(f=>f.week)) : 0;
+  let out = [];
+  if(!ko.length){
+    let seeds;
+    if(gs > 0){
+      const gf = fixtures.filter(f=>f.stage==='group');
+      if(!gf.length){ alert('Generate the group fixtures first.'); return; }
+      const left = gf.filter(f=>f.status!=='done').length;
+      if(left){ alert(`${left} group match(es) are still unplayed. Post all group results first.`); return; }
+      seeds = qualifierSeeds();
+    }else{
+      if(teams.length < 2){ alert('Add at least two approved teams first.'); return; }
+      seeds = teams.map(t=>t.name).sort(()=>Math.random()-0.5);   // random draw
+    }
+    if(seeds.length < 2){ alert('Not enough qualified teams to build a bracket.'); return; }
+    const gOf = n => (teams.find(t=>t.name===n)||{}).group || null;
+    const {size, pairs} = bracketPairs(seeds, gs>0 ? gOf : null);
+    const name = roundNameFor(size);
+    let vi = 0;
+    out = pairs.map(([h,a],i)=> a===null
+      ? newFx({week: base+1, home:h, away:'BYE', hs:1, as:0, status:'done', date:'—', time:'', venue:'—', stage:'knockout', roundNo:1, roundName:name, slot:i})
+      : newFx({week: base+1, home:h, away:a, venue: pickVenue(vi++), stage:'knockout', roundNo:1, roundName:name, slot:i}));
+    const byes = out.filter(f=>f.away==='BYE').length;
+    if(!confirm(`Create the ${name} with ${out.length - byes} match(es)${byes ? ' and '+byes+' bye(s) for the top seeds' : ''}?`)) return;
+  }else{
+    const maxRound = Math.max(...ko.map(f=>f.roundNo));
+    const cur = ko.filter(f=>f.roundNo===maxRound && f.slot>=0).sort((a,b)=>a.slot-b.slot);
+    const pending = cur.filter(f=>f.status!=='done').length;
+    if(pending){ alert(`${pending} match(es) in the ${cur[0].roundName} are still unplayed.`); return; }
+    if(cur.length===1){
+      const champ = winnerOf(cur[0]);
+      if(!champ){ alert('The final has no winner yet. If it ended level, post the penalty score in Match Centre.'); return; }
+      alert('🏆 Tournament complete. Champions: '+champ); return;
+    }
+    const winners = cur.map(winnerOf);
+    if(winners.some(w=>!w)){ alert('A knockout match has no winner (level score with no penalty result). Fix it in Match Centre first.'); return; }
+    const size = winners.length, name = roundNameFor(size);
+    let vi = 0;
+    for(let i=0; i<size; i+=2){
+      out.push(newFx({week: base+1, home:winners[i], away:winners[i+1], venue: pickVenue(vi++), stage:'knockout', roundNo:maxRound+1, roundName:name, slot:i/2}));
+    }
+    if(size===2 && currentLeague.third_place){
+      const losers = cur.map(loserOf);
+      if(losers.every(l=>l && l!=='BYE')) out.push(newFx({week: base+1, home:losers[0], away:losers[1], venue: pickVenue(vi++), stage:'knockout', roundNo:maxRound+1, roundName:'Third place', slot:-1}));
+    }
+    if(!confirm(`Create the ${name}?`)) return;
+  }
+  if(await saveNewFixtures(out)) alert('Round created. Use Reschedule to set dates and times.');
+}
+async function clearFixtures(scope){
+  let list;
+  if(scope==='lastround'){
+    const ko = fixtures.filter(f=>f.stage==='knockout');
+    if(!ko.length){ alert('There are no knockout rounds to undo.'); return; }
+    const mr = Math.max(...ko.map(f=>f.roundNo));
+    list = ko.filter(f=>f.roundNo===mr);
+  }else list = [...fixtures];
+  if(!list.length){ alert('There are no fixtures to delete.'); return; }
+  const what = scope==='lastround' ? 'the latest knockout round' : 'ALL fixtures';
+  if(!confirm(`Delete ${what} (${list.length} fixture${list.length===1?'':'s'}), including results and match events? This cannot be undone.`)) return;
+  if(liveMode){
+    try{
+      const ids = list.map(f=>f._id).filter(Boolean);
+      for(let i=0; i<ids.length; i+=100){
+        await q(sb.from('fixtures').delete().in('id', ids.slice(i, i+100)).select('id'));
+      }
+    }catch(e){ alert('Could not delete: '+e.message); return; }
+  }
+  list.forEach(f=>{ delete matchEvents[fxKey(f)]; });
+  fixtures = fixtures.filter(f=>!list.includes(f));
+  renderEverything();
+  if(liveMode){ try{ await rebuildStandingsCache(); }catch(e){ console.warn(e); } }
+}
+async function removeFixture(i){
+  const f = fixtures[i]; if(!f || f.status==='done') return;
+  if(!confirm(`Delete ${f.home} vs ${f.away}?`)) return;
+  if(liveMode && f._id){
+    try{ await q(sb.from('fixtures').delete().eq('id', f._id).select('id')); }
+    catch(e){ alert('Could not delete: '+e.message); return; }
+  }
+  delete matchEvents[fxKey(f)];
+  fixtures.splice(i,1);
+  renderEverything();
+}
+
+/* ---------- fixtures page ---------- */
+const fxTag = f => f.stage==='group' ? 'Group '+f.group : f.stage==='knockout' ? (f.roundName||'Knockout') : '';
+function scoreText(f){
+  if(f.away==='BYE') return 'Bye';
+  if(f.status==='upcoming') return f.time || '';
+  let t = `${f.hs ?? 0} – ${f.as ?? 0}`;
+  if(f.stage==='knockout' && f.hp!=null && f.ap!=null && f.hs===f.as) t += ` (${f.hp}–${f.ap} pens)`;
+  return t;
+}
+function weekLabel(w){
+  const fx = fixtures.filter(f=>f.week===w);
+  const ko = [...new Set(fx.filter(f=>f.stage==='knockout').map(f=>f.roundName))];
+  if(ko.length) return ko.join(' · ');
+  if(fx.some(f=>f.stage==='group')) return 'Group stage · Matchday '+w;
+  return 'Matchweek '+w;
+}
+function fixtureCard(f, i){
+  const d = String(f.date||'').split(' ');
+  const tag = fxTag(f);
+  if(f.away==='BYE') return `<div class="fx-card"><div class="fdate"><b>—</b></div><div class="fteams">${esc(f.home)} <span>— bye to the next round</span></div><div class="mono">Bye</div><div class="row-actions"></div></div>`;
+  return `
+    <div class="fx-card">
+      <div class="fdate"><b>${esc(d[0]||'TBC')}</b>${esc(d.slice(1).join(' '))}</div>
+      <div class="fteams">${esc(f.home)} <span>vs</span> ${esc(f.away)}<br><span>${esc(tag)}${tag && f.venue ? ' · ' : ''}${esc(f.venue)}</span></div>
+      <div class="mono">${esc(scoreText(f))}</div>
+      <div class="row-actions">
+        ${statusBadge(f.status)}
+        <button class="btn btn-ghost btn-sm" onclick="rescheduleFixture(${i})">Reschedule</button>
+        ${f.status==='upcoming' ? `<button class="btn btn-ghost btn-sm" onclick="removeFixture(${i})">Delete</button>` : ''}
+      </div>
+    </div>`;
+}
+function renderFixtureActions(){
+  const el = document.getElementById('fxActions'); if(!el) return;
+  let h = '';
+  if(isTournament()){
+    const gs = groupsCountN();
+    if(gs>0) h += `<button class="btn btn-accent btn-sm" onclick="generateGroupFixtures()">1 · Group fixtures</button>`;
+    h += `<button class="btn btn-accent btn-sm" onclick="generateKnockout()">${gs>0?'2':'1'} · Next knockout round</button>`;
+    if(fixtures.some(f=>f.stage==='knockout')) h += `<button class="btn btn-ghost btn-sm" onclick="clearFixtures('lastround')">Undo last round</button>`;
+  }else{
+    h += `<button class="btn btn-accent btn-sm" onclick="generateSeason()">⚡ Generate season</button>`;
+  }
+  if(fixtures.length) h += `<button class="btn btn-danger btn-sm" onclick="clearFixtures('all')">Delete all</button>`;
+  el.innerHTML = h;
+  const hint = document.getElementById('fxHint'); if(!hint) return;
+  const done = f=>f.status==='done';
+  if(isTournament()){
+    const g = fixtures.filter(f=>f.stage==='group'), k = fixtures.filter(f=>f.stage==='knockout');
+    const parts = [];
+    if(groupsCountN()>0) parts.push(g.length ? `Group stage: ${g.filter(done).length} of ${g.length} played` : 'Group stage: not generated yet');
+    parts.push(k.length ? `Knockout: ${k.filter(f=>f.slot>=0 && f.roundNo===Math.max(...k.map(x=>x.roundNo))).map(f=>f.roundName)[0] || ''} in progress` : 'Knockout: not started');
+    hint.textContent = parts.join('  ·  ');
+  }else{
+    hint.textContent = fixtures.length ? `${fixtures.filter(done).length} of ${fixtures.length} fixtures played` : 'No fixtures yet. Add your teams, then tap Generate season.';
+  }
+}
+function renderFixturesPage(){
+  const weeks = [...new Set(fixtures.map(f=>f.week))].sort((a,b)=>b-a);
+  document.getElementById('fixturesByWeek').innerHTML = weeks.map(w=>{
+    const rows = fixtures.map((f,i)=>({f,i})).filter(x=>x.f.week===w).map(x=>fixtureCard(x.f,x.i)).join('');
+    return `<div class="week-group"><div class="week-group-head"><h4>${esc(weekLabel(w))}</h4></div>${rows}</div>`;
+  }).join('') || '<div class="empty-state">No fixtures yet.</div>';
+  renderFixtureActions();
+}
+async function rescheduleFixture(i){
+  const f = fixtures[i]; if(!f) return;
+  const newDate = prompt(`New date for ${f.home} vs ${f.away} (currently ${f.date||'TBC'}):`, f.date||'');
+  if(newDate===null) return;
+  const newTime = prompt(`New kickoff time (currently ${f.time||'TBC'}):`, f.time||'');
+  if(newTime===null) return;
+  if(!newDate.trim()){ alert('Please enter a date, for example Sat 12 Jul.'); return; }
+  if(liveMode && f._id){
+    try{ await updateRow('fixtures', f._id, {date_label:newDate.trim(), time_label:newTime.trim()}); }
+    catch(e){ alert('Could not reschedule: '+e.message); return; }
+  }
+  f.date = newDate.trim(); f.time = newTime.trim();
+  renderFixturesPage(); renderHome(); populateMatchSelect();
+}
+
+/* ================= MATCH CENTRE ================= */
+function playable(){ return fixtures.filter(f=>f.away!=='BYE'); }
+function populateMatchSelect(){
+  ensureKeys();
+  const sel = document.getElementById('matchFixtureSelect');
+  const prev = sel.value, list = playable();
+  sel.innerHTML = list.length ? list.map(f=>{
+    const tag = fxTag(f);
+    return `<option value="${esc(fxKey(f))}">${esc((tag ? tag+' · ' : '') + f.home + ' vs ' + f.away + ' (' + (f.date||'TBC') + ')')}</option>`;
+  }).join('') : '<option value="">No fixtures yet</option>';
+  if(prev && list.some(f=>fxKey(f)===prev)) sel.value = prev;
+  loadMatch();
+}
+function currentFixture(){
+  const k = document.getElementById('matchFixtureSelect').value;
+  return fixtures.find(f=>fxKey(f)===k) || null;
+}
+function matchState(f){
+  const k = fxKey(f);
+  if(!matchEvents[k]) matchEvents[k] = {home: f.hs ?? 0, away: f.as ?? 0, events: [], loaded: false};
+  return matchEvents[k];
+}
+function setMatchStatusLine(f){
+  document.getElementById('mStatusLine').textContent = !f ? 'No fixture selected' : f.status==='live' ? '● LIVE' : f.status==='done' ? 'Full time' : 'Not started';
+}
+async function loadMatch(){
+  const f = currentFixture();
+  const $ = id => document.getElementById(id);
+  if(!f){
+    $('mHomeName').textContent = '—'; $('mAwayName').textContent = '—';
+    $('mHomeScore').textContent = '0'; $('mAwayScore').textContent = '0';
+    $('pensBlock').style.display = 'none'; setMatchStatusLine(null);
+    $('matchEventLog').innerHTML = '<div class="empty-state">No events logged yet.</div>';
+    return;
+  }
+  const m = matchState(f);
+  $('mHomeName').textContent = f.home; $('mAwayName').textContent = f.away;
+  $('mHomeScore').textContent = m.home; $('mAwayScore').textContent = m.away;
+  const ko = f.stage==='knockout';
+  $('pensBlock').style.display = ko ? '' : 'none';
+  $('mHomePensLbl').textContent = f.home + ' penalties'; $('mAwayPensLbl').textContent = f.away + ' penalties';
+  $('mHomePens').value = f.hp ?? ''; $('mAwayPens').value = f.ap ?? '';
+  setMatchStatusLine(f);
+  renderMatchEvents(f);
+  if(liveMode && f._id && !m.loaded){
+    m.loaded = true;
+    try{
+      const rows = await q(sb.from('match_events').select('*').eq('fixture_id', f._id).order('created_at', {ascending:false}));
+      m.events = rows.map(e=>({min:e.minute, type:e.type, desc:e.description}));
+      if(currentFixture()===f) renderMatchEvents(f);
+    }catch(e){ m.loaded = false; console.warn('could not load events', e); }
+  }
+}
+function adjustScore(side, delta){
+  const f = currentFixture(); if(!f) return;
+  const m = matchState(f);
+  m[side] = Math.max(0, m[side] + delta);
+  document.getElementById(side==='home' ? 'mHomeScore' : 'mAwayScore').textContent = m[side];
+  if(liveMode && f._id && f.status==='live'){        // keep the fan site's live score in step
+    clearTimeout(scoreSaveTimer);
+    scoreSaveTimer = setTimeout(()=>{
+      updateRow('fixtures', f._id, {home_score:m.home, away_score:m.away}).then(()=>{ f.hs = m.home; f.as = m.away; }).catch(e=>console.warn('live score not saved', e));
+    }, 600);
+  }
+}
+async function startMatch(){
+  const f = currentFixture(); if(!f){ alert('Choose a fixture first.'); return; }
+  if(f.status==='done' && !confirm('This match already has a final result. Set it back to LIVE?')) return;
+  const m = matchState(f);
+  if(liveMode && f._id){
+    try{ await updateRow('fixtures', f._id, {status:'live', home_score:m.home, away_score:m.away}); }
+    catch(e){ alert('Could not set the match live: '+e.message); return; }
+  }
+  f.status = 'live'; f.hs = m.home; f.as = m.away;
+  renderFixturesPage(); renderHome(); setMatchStatusLine(f); renderStandings();
+}
+async function addMatchEvent(){
+  const f = currentFixture(); if(!f){ alert('Choose a fixture first.'); return; }
+  const min = document.getElementById('evMinute').value || '0';
+  const type = document.getElementById('evType').value;
+  const desc = document.getElementById('evDesc').value.trim();
+  if(!desc){ alert('Add a short description of the event.'); return; }
+  if(liveMode && f._id){
+    try{
+      await q(sb.from('match_events').insert({fixture_id: f._id, league_id: currentLeague.id, minute: Number(min)||0, type, description: desc}));
+    }catch(e){ alert('Could not save event: '+e.message); return; }
+  }
+  matchState(f).events.unshift({min, type, desc});
+  document.getElementById('evMinute').value = ''; document.getElementById('evDesc').value = '';
+  renderMatchEvents(f);
+}
+function renderMatchEvents(f){
+  const events = (f && matchEvents[fxKey(f)]?.events) || [];
+  document.getElementById('matchEventLog').innerHTML = events.map(e=>`
+    <div class="event-row"><div class="emin">${esc(e.min)}'</div><div>${esc(e.type)}</div><div class="etxt">${esc(e.desc)}</div></div>
+  `).join('') || `<div class="empty-state">No events logged yet.</div>`;
+}
+async function postResult(){
+  const f = currentFixture(); if(!f){ alert('Choose a fixture first.'); return; }
+  const m = matchState(f);
+  let hp = null, ap = null;
+  if(f.stage==='knockout'){
+    if(fixtures.some(x=>x.stage==='knockout' && x.roundNo > f.roundNo)){
+      alert('The next knockout round has already been created, so this result is locked. Use "Undo last round" on the Fixtures page first.'); return;
+    }
+    if(m.home===m.away){
+      hp = parseInt(document.getElementById('mHomePens').value, 10);
+      ap = parseInt(document.getElementById('mAwayPens').value, 10);
+      if(!Number.isInteger(hp) || !Number.isInteger(ap) || hp<0 || ap<0 || hp===ap){
+        alert('Knockout matches need a winner. Enter the penalty shoot-out score (it cannot be level).'); return;
+      }
+    }
+  }
+  const pensTxt = hp!==null ? ` (${hp}–${ap} on penalties)` : '';
+  if(!confirm(`Post final result: ${f.home} ${m.home} – ${m.away} ${f.away}${pensTxt}?`)) return;
+  if(liveMode && f._id){
+    const patch = {home_score:m.home, away_score:m.away, status:'done'};
+    if(tournamentReady() && f.stage==='knockout'){ patch.home_pens = hp; patch.away_pens = ap; }
+    try{ await updateRow('fixtures', f._id, patch); }
+    catch(e){ alert('Could not post result: '+e.message); return; }
+  }
+  f.hs = m.home; f.as = m.away; f.status = 'done'; f.hp = hp; f.ap = ap;
+  renderEverything();
+  if(liveMode){
+    try{ await writeStandingsCache(); }catch(e){ console.warn('standings_cache write failed:', e); }
+  }
+  alert('Result posted. Tables and the fan site are updated.');
+}
+
+/* ================= TABLE & BRACKET ================= */
+async function writeStandingsCache(){
+  const rows = [], lid = currentLeague.id, ext = tournamentReady() && ('format' in currentLeague);
+  const add = (arr, grp)=>arr.forEach(r=>{
+    const row = {league_id:lid, team:r.team, p:r.p, w:r.w, d:r.d, l:r.l, gf:r.gf, ga:r.ga, pts:r.pts};
+    if(ext){ row.pos = r.pos; row.group_name = grp || null; }
+    rows.push(row);
+  });
+  if(isTournament()) Object.entries(computeGroupTables()).forEach(([L,arr])=>add(arr, L));
+  else add(computeStandings(), null);
+  if(!rows.length) return;
+  await q(sb.from('standings_cache').upsert(rows, {onConflict:'league_id,team'}));
+}
+async function rebuildStandingsCache(){
+  await q(sb.from('standings_cache').delete().eq('league_id', currentLeague.id).select('team'));
+  await writeStandingsCache();
+}
+function standingsTableHTML(rows, qualify){
+  const head = `<table><thead><tr><th>#</th><th>Team</th><th class="num">P</th><th class="num">W</th><th class="num">D</th><th class="num">L</th><th class="num">GF</th><th class="num">GA</th><th class="num">GD</th><th class="num">Pts</th></tr></thead>`;
+  const body = rows.map((r,i)=>`
+    <tr${qualify && i<qualify ? ' style="background:var(--green-dim)"' : ''}><td class="mono">${i+1}</td><td class="strong">${esc(r.team)}</td><td class="num">${r.p}</td><td class="num">${r.w}</td>
+    <td class="num">${r.d}</td><td class="num">${r.l}</td><td class="num">${r.gf}</td><td class="num">${r.ga}</td>
+    <td class="num">${r.gf-r.ga>0?'+':''}${r.gf-r.ga}</td><td class="num strong">${r.pts}</td></tr>`).join('');
+  return head + '<tbody>' + (body || '<tr><td colspan="10" class="empty-state">No teams yet.</td></tr>') + '</tbody></table>';
+}
+function matchBox(f){
+  if(!f) return `<div class="br-match"><div class="br-team tbd"><span>To be decided</span></div><div class="br-team tbd"><span>To be decided</span></div></div>`;
+  if(f.away==='BYE') return `<div class="br-match"><div class="br-team win"><span>${esc(f.home)}</span></div><div class="br-team tbd"><span>bye</span></div></div>`;
+  const w = winnerOf(f), done = f.status==='done';
+  const line = (team, score, isW)=>`<div class="br-team ${isW?'win':''}"><span>${esc(team)}</span><span>${done ? esc(score ?? '') : ''}</span></div>`;
+  const pens = (done && f.hs===f.as && f.hp!=null && f.ap!=null) ? `<div class="br-pens">Penalties ${f.hp}–${f.ap}</div>` : '';
+  return `<div class="br-match">${line(f.home, f.hs, w===f.home)}${line(f.away, f.as, w===f.away)}${pens}</div>`;
+}
+function bracketHTML(fx){
+  const ko = fx.filter(f=>f.stage==='knockout');
+  if(!ko.length) return '<div class="empty-state">The bracket appears once the first knockout round is created.</div>';
+  const r1 = ko.filter(f=>f.roundNo===1 && f.slot>=0);
+  const size = Math.max(2, r1.length*2), R = Math.round(Math.log2(size));
+  let cols = '';
+  for(let r=1; r<=R; r++){
+    const count = size/Math.pow(2,r);
+    let boxes = '';
+    for(let s=0; s<count; s++) boxes += matchBox(ko.find(x=>x.roundNo===r && x.slot===s));
+    if(r===R){ const tp = ko.find(x=>x.slot===-1); if(tp) boxes += '<h5 style="margin-top:14px;">Third place</h5>' + matchBox(tp); }
+    cols += `<div class="br-col"><h5>${esc(roundNameFor(count*2))}</h5>${boxes}</div>`;
+  }
+  return `<div class="br-wrap">${cols}</div>`;
+}
+function renderStandings(){
+  const wrap = document.getElementById('standingsWrap'), t = isTournament();
+  document.getElementById('tableTitle').textContent = t ? 'Group tables' : 'League table';
+  document.getElementById('bracketPanel').style.display = t ? '' : 'none';
+  if(!t){
+    document.getElementById('tableSub').textContent = 'Auto-computed from posted results';
+    wrap.innerHTML = standingsTableHTML(computeStandings(), 0);
+    return;
+  }
+  const gs = groupsCountN();
+  document.getElementById('tableSub').textContent = gs>0 ? `Top ${advanceN()} in each group advance` : 'Straight knockout — no groups';
+  if(gs===0) wrap.innerHTML = '<div class="empty-state">This tournament goes straight to the knockout rounds.</div>';
+  else{
+    const un = teams.filter(x=>!x.group).length;
+    wrap.innerHTML = (un ? `<div class="flow-hint" style="padding:12px 16px 0;">${un} team(s) have no group yet. Assign them on the Teams &amp; Players page.</div>` : '') +
+      Object.entries(computeGroupTables()).map(([L,rows])=>`<h4 class="grp-title">Group ${L}</h4>` + standingsTableHTML(rows, advanceN())).join('');
+  }
+  document.getElementById('bracketWrap').innerHTML = bracketHTML(fixtures);
+}
+async function showPrintSheet(html){
+  let holder = document.getElementById('printSheet');
+  if(!holder){ holder = document.createElement('div'); holder.id = 'printSheet'; document.body.appendChild(holder); }
+  holder.innerHTML = html;
+  await Promise.all([...holder.querySelectorAll('img')].map(im=> im.complete ? 0 : new Promise(r=>{ im.onload = im.onerror = r; })));
+  window.print();
+}
+function printStandings(){
+  const L = currentLeague || {}, title = (L.name||'League') + (L.season_name ? ' ' + L.season_name : '');
+  const blocks = isTournament() && groupsCountN()>0
+    ? Object.entries(computeGroupTables()).map(([g,rows])=>`<h3 class="ps-h3">Group ${g}</h3>` + standingsTableHTML(rows, 0)).join('')
+    : (isTournament() ? bracketHTML(fixtures) : standingsTableHTML(computeStandings(), 0));
+  const ko = isTournament() && groupsCountN()>0 && fixtures.some(f=>f.stage==='knockout') ? `<h3 class="ps-h3">Knockout stage</h3>` + bracketHTML(fixtures) : '';
+  showPrintSheet(`<div class="ps-page"><div class="ps-head"><img class="ps-logo" src="${leagueLogoSrc()}" alt=""><h1>${esc(title)}</h1><h2>${isTournament() ? 'Group tables' : 'League table'}</h2><p>Powered by Prolific XI</p></div><div class="ps-tables">${blocks}${ko}</div></div>`);
+}
+
+/* ================= FINANCE ================= */
+function renderFinance(){
+  document.getElementById('navUnpaidCount').textContent = fees.filter(f=>f.status==='pending').length;
+  document.getElementById('feesTable').innerHTML = fees.map(f=>`
+    <tr><td class="strong">${esc(f.team)}</td><td class="mono">KSh ${Number(f.amount||0).toLocaleString()}</td><td>${statusBadge(f.status)}</td><td class="mono">${esc(f.code)}</td></tr>
+  `).join('');
+  document.getElementById('finesTable').innerHTML = fines.map(f=>`
+    <tr><td class="strong">${esc(f.who)}</td><td>${esc(f.reason)}</td><td class="mono">KSh ${Number(f.amount||0).toLocaleString()}</td><td>${statusBadge(f.status)}</td></tr>
+  `).join('');
+  const setT = (id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  const collected = fees.filter(f=>f.status==='paid').reduce((n,f)=>n+(Number(f.amount)||0),0);
+  const unpaidTeams = teams.filter(t=>t.feesStatus==='pending');
+  const owed = unpaidTeams.reduce((n,t)=>n+(Number(t.owed)||0),0);
+  const finesOpen = fines.filter(f=>f.status!=='paid');
+  setT('finCollected', 'KSh '+collected.toLocaleString());
+  setT('finCollectedSub', new Set(fees.map(f=>f.team)).size+' of '+teams.length+' teams billed');
+  setT('finOwed', 'KSh '+owed.toLocaleString());
+  setT('finOwedSub', unpaidTeams.length+' teams outstanding');
+  setT('finFines', 'KSh '+finesOpen.reduce((n,f)=>n+(Number(f.amount)||0),0).toLocaleString());
+  setT('finFinesSub', finesOpen.length+' fines unpaid');
+  const sel = document.getElementById('pTeam');
+  if(sel) sel.innerHTML = teams.map(t=>`<option>${esc(t.name)}</option>`).join('');
+}
+async function recordPayment(){
+  const team = document.getElementById('pTeam').value;
+  const amount = Number(document.getElementById('pAmount').value || 0);
+  const code = document.getElementById('pCode').value.trim() || '—';
+  if(!team){ alert('Add a team first.'); return; }
+  if(!Number.isFinite(amount) || amount<=0){ alert('Enter an amount greater than zero.'); return; }
+  const t = teams.find(x=>x.name===team);
+  const newOwed = Math.max(0, (Number(t && t.owed)||0) - amount);
+  const settled = newOwed===0;
+  if(liveMode){
+    try{
+      await q(sb.from('invoices').insert({league_id: currentLeague.id, team, amount, status:'paid', mpesa_code:code}));
+      if(t && t._id) await updateRow('teams', t._id, {fees_status: settled ? 'paid' : 'pending', owed:newOwed});
+    }catch(e){ alert('Could not record payment: '+e.message); return; }
+  }
+  fees.unshift({team, amount, status:'paid', code});
+  if(t){ t.feesStatus = settled ? 'paid' : 'pending'; t.owed = newOwed; }
+  document.getElementById('pAmount').value=''; document.getElementById('pCode').value='';
+  closeModal('paymentModal');
+  renderFinance(); renderTeamsPage(); renderHome();
+  if(!settled) alert('Payment recorded. KSh '+newOwed.toLocaleString()+' is still outstanding for '+team+'.');
+}
+/* ================= SPONSORS ================= */
+function renderSponsors(){
+  const tb = document.getElementById('sponsorsTable'); if(!tb) return;
+  tb.innerHTML = sponsors.map((x,i)=>`
+    <tr><td class="strong">${esc(x.name)}</td><td>${esc(x.tagline||'—')}</td>
+    <td><div class="row-actions"><button class="btn btn-danger btn-sm" onclick="removeSponsor(${i})">Remove</button></div></td></tr>
+  `).join('') || '<tr><td colspan="3" class="empty-state">No sponsors yet.</td></tr>';
+  document.getElementById('sponsorCountSub').textContent = sponsors.length + (sponsors.length===1 ? ' sponsor' : ' sponsors');
+}
+async function addSponsor(){
+  const name = document.getElementById('spName').value.trim();
+  const tagline = document.getElementById('spTag').value.trim();
+  if(name.length<2){ alert('Enter the sponsor\'s name.'); return; }
+  if(sponsors.some(x=>x.name.toLowerCase()===name.toLowerCase())){ alert('That sponsor is already listed.'); return; }
+  const sp = {name, tagline};
+  if(liveMode){
+    if(!sponsorsOk){ alert('Sponsors need one more database step: run supabase-v3.sql in the Supabase SQL Editor, then reload this page.'); return; }
+    try{
+      const row = await q(sb.from('sponsors').insert({league_id: currentLeague.id, name, tagline: tagline||null}).select('id').single());
+      sp._id = row.id;
+    }catch(e){ alert('Could not add sponsor: '+e.message); return; }
+  }
+  sponsors.push(sp);
+  document.getElementById('spName').value = ''; document.getElementById('spTag').value = '';
+  renderSponsors();
+}
+async function removeSponsor(i){
+  const sp = sponsors[i]; if(!sp) return;
+  if(!confirm('Remove '+sp.name+'?')) return;
+  if(liveMode && sp._id){
+    try{ await q(sb.from('sponsors').delete().eq('id', sp._id).select('id')); }
+    catch(e){ alert('Could not remove sponsor: '+e.message); return; }
+  }
+  sponsors.splice(i,1); renderSponsors();
+}
+
+/* ================= BRANDING ================= */
+function updateBrandPreview(){
+  const p = document.getElementById('colorPrimary').value;
+  const s = document.getElementById('colorSecondary').value;
+  document.getElementById('pvCrest').style.background = `linear-gradient(135deg, ${p}, ${s})`;
+}
+function resizeSquare(file, size){
+  return new Promise((res, rej)=>{
+    const url = URL.createObjectURL(file), img = new Image();
+    img.onload = ()=>{
+      const c = document.createElement('canvas'); c.width = size; c.height = size;
+      const r = Math.min(size/img.width, size/img.height), w = img.width*r, h = img.height*r;
+      c.getContext('2d').drawImage(img, (size-w)/2, (size-h)/2, w, h);     // keep the whole logo, no cropping
+      URL.revokeObjectURL(url); res(c.toDataURL('image/png'));
+    };
+    img.onerror = ()=>{ URL.revokeObjectURL(url); rej(new Error('Could not read that image')); };
+    img.src = url;
+  });
+}
+async function pickLeagueLogo(input){
+  const f = input.files && input.files[0]; if(!f) return;
+  try{ pendingLogo = await resizeSquare(f, 256); showLogoPreview(pendingLogo); }
+  catch(e){ alert(e.message); input.value = ''; }
+}
+async function saveBranding(){
+  const data = {
+    color_primary: document.getElementById('colorPrimary').value,
+    color_secondary: document.getElementById('colorSecondary').value,
+  };
+  if(pendingLogo){
+    if(liveMode && !('logo' in currentLeague)){ alert('Saving a logo needs the latest database step: run supabase-v3.sql in the Supabase SQL Editor, then reload this page.'); return; }
+    data.logo = pendingLogo;
+  }
+  if(liveMode){
+    try{ await updateRow('leagues', currentLeague.id, data); }
+    catch(e){ alert('Could not save branding: '+e.message); return; }
+  }
+  Object.assign(currentLeague, data); pendingLogo = null;
+  alert('Branding saved.');
+}
+/* ================= COMMS ================= */
+async function sendComms(){
+  const text = document.getElementById('commsText').value.trim();
+  if(!text){ alert('Write a message before sending.'); return; }
+  const audience = document.getElementById('commsAudience').value;
+  const entry = {msg:text, audience, sent:"Just now"};
+  if(liveMode){
+    try{
+      await q(sb.from('announcements').insert({league_id: currentLeague.id, msg:text, audience}));
+    }catch(e){ alert('Could not send message: '+e.message); return; }
+  }
+  commsHistory.unshift(entry);
+  document.getElementById('commsText').value='';
+  renderCommsHistory();
+  alert(`Saved to your announcement log (audience: ${audience}). SMS and email delivery are not connected yet.`);
+}
+function renderCommsHistory(){
+  document.getElementById('commsHistoryTable').innerHTML = commsHistory.map(c=>`
+    <tr><td>${esc(c.msg)}</td><td>${esc(c.audience)}</td><td class="mono">${esc(c.sent)}</td></tr>
+  `).join('') || '<tr><td colspan="3" class="empty-state">No announcements yet.</td></tr>';
+}
+/* ================= MODAL ================= */
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-backdrop').forEach(m=>{
+  m.addEventListener('click', e=>{ if(e.target===m) m.classList.remove('show'); });
+});
+
+/* ================= INIT ================= */
+initAuthGate();
+</script>
+
+</body>
+</html>
